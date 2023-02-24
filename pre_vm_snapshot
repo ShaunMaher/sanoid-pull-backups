@@ -4,7 +4,8 @@ export
 
 libvirt_domains=$(libvirt_domains)
 
-SANOID_TARGETS=${SANOID_TARGETS:-${SANOID_TARGET}}
+export SANOID_TARGETS=${SANOID_TARGETS:-${SANOID_TARGET}}
+export SANOID_SCRIPT=${SANOID_SCRIPT:-${1}}
 export
 
 while read TARGET; do
@@ -14,18 +15,60 @@ while read TARGET; do
 
   while read domain; do
     printf '%b\n' "The domain '${domain}' has volumes on the '${TARGET}' dataset."
+
     if [ "${SANOID_SCRIPT}" == "pre" ]; then
-      printf '%b\n' "virsh pause \"${domain}\""
+      domain_state=$(printf '%b' "${domains}" | yq ".domains[] | select(.name == \"${domain}\") | .state")
+      dom_freeze_support=$(printf '%b' "${domains}" | yq ".domains[] | select(.name == \"${domain}\") | .fs_freeze_thaw_supported")
+      dom_trim_support=$(printf '%b' "${domains}" | yq ".domains[] | select(.name == \"${domain}\") | .fs_freeze_thaw_supported")
+      printf '%b\n' "The domain '${domain}' is currently '${domain_state}'."
+      printf '%b\n' "The domain '${domain}' suppports filesystem freezing: ${dom_freeze_support}"
+      printf '%b\n' "The domain '${domain}' suppports filesystem trimming: ${dom_trim_support}"
+      if [ "${domain_state}" == "running" ]; then
+        # Ask the guest to trim it's filesystems
+        if [ "${dom_trim_support}" == "true" ]; then
+          printf '%b\n' "virsh domfstrim \"${domain}\""
+          virsh domfstrim "${domain}" || true
+	fi
+
+	# Ask the guest to freeze it's filesystems
+        if [ "${dom_freeze_support}" == "true" ]; then
+          printf '%b\n' "virsh domfsfreeze \"${domain}\""
+          virsh domfsfreeze "${domain}" || true
+	fi
+
+        # Everything should now be synced to disk.  Suspend the VM.
+        printf '%b\n' "virsh suspend \"${domain}\""
+        virsh suspend "${domain}" || true
+      fi
     fi
 
     while read zfs_dataset; do
       if [ "${SANOID_SCRIPT}" == "pre" ]; then
         # Atomic Snapshot creation
         printf '%b\n' "The domain '${domain}' needs an atomic snapshot created on '${zfs_dataset}'"
-        printf '%b\n' "zfs snapshot \"${zfs_dataset}@atomic_$(date +%s)\""
+        printf '%b\n' "zfs snapshot \"${zfs_dataset}@atomic_\$(date +%s)\""
+	zfs snapshot "${zfs_dataset}@atomic_$(date +%s)"
       elif [ "${SANOID_SCRIPT}" == "post" ]; then
         true
         # Should we run syncoid here?
+
+        for (( d=0; d<=10; d++ )) do
+          #user:net.openoid.syncoid.destination.${d}
+	  destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${TARGET}" | tail -n +2 | awk '{print $3}')
+	  ds_name=$(basename "${zfs_dataset}")
+	  destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
+	  if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
+            echo "syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+	  fi
+	  
+	  if [ "${zfs_dataset}" != "${TARGET}" ]; then
+            destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${zfs_dataset}" | tail -n +2 | awk '{print $3}')
+	    destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
+            if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
+              echo "syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+            fi
+	  fi
+	done
       elif [ "${SANOID_SCRIPT}" == "prune" ]; then
         # Atomic Snapshot cleanup
         while read snapname; do
@@ -33,6 +76,19 @@ while read TARGET; do
 	done < <(zfs list -t snapshot -r "${zfs_dataset}" | grep "@atomic_")
       fi
     done < <(printf '%b' "${domains}" | yq ".domains[] | select(.name == \"${domain}\") | .block_devices[].zfs_dataset" | grep -v 'null' | sort | uniq)
-    printf '%b\n' "virsh resume \"${domain}\""
+
+    if [ "${SANOID_SCRIPT}" == "pre" ]; then
+      printf '%b\n' "virsh resume \"${domain}\""
+      virsh resume "${domain}" || true
+      sleep 5
+      printf '%b\n' "virsh resume \"${domain}\" (again, just to be sure)"
+      virsh resume "${domain}" 2>/dev/null || true
+      
+      printf '%b\n' "virsh domfsthaw \"${domain}\""
+      virsh domfsthaw "${domain}" 2>/dev/null || true
+      sleep 2
+      printf '%b\n' "virsh domfsthaw \"${domain}\" (again, just to be sure)"
+      virsh domfsthaw "${domain}" 1>/dev/null 2>/dev/null || true
+    fi
   done < <(printf '%b' "${domains}" | yq '.domains[].name')
 done < <(printf '%b\n' "${SANOID_TARGETS}" | sed 's/,/\n/g')

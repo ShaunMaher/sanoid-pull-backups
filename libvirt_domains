@@ -13,6 +13,9 @@ while read domain; do
   domblklist=$(virsh domblklist "${domain}" | awk 'BEGIN{print "block_devices:"}{if ((length($2) > 0) && ($1 !~ "Target")){print "- target: "$1"\n  source: \""$2"\"\n"}}')
   #printf '%b\n' "${domblklist}"
 
+  printf '  fs_freeze_thaw_supported: %b\n' $( (timeout -k 10 5 virsh qemu-agent-command "${domain}" '{"execute":"guest-info"}' 2>/dev/null || echo "false") | (jq '.return.supported_commands[] | select(.name == "guest-fsfreeze-freeze") | .enabled' 2>/dev/null || echo "false") )
+  printf '  fs_trim_supported: %b\n' $( (timeout -k 10 5 virsh qemu-agent-command "${domain}" '{"execute":"guest-info"}' 2>/dev/null || echo "false") | (jq '.return.supported_commands[] | select(.name == "guest-fstrim") | .enabled' 2>/dev/null || echo "false") )
+
   printf '  %b\n' "block_devices:"
   while read blkdev; do
     printf '%s' "${domblklist}" | yq ".block_devices[] | select(.source == \"${blkdev}\")" | awk '{if ($1 ~ "target") print "  - "$0; else print "    "$0}'
