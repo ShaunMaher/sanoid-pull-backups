@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+export
+
+libvirt_domains=$(libvirt_domains)
+
+SANOID_TARGETS=${SANOID_TARGETS:-${SANOID_TARGET}}
+export
+
+while read TARGET; do
+  printf '%b\n' "Sanoid is processing target: '${TARGET}'"
+  domains=$(printf '%b' "${libvirt_domains}" | yq "{ \"domains\": [ .domains[] | select(.block_devices[].zfs_dataset == \"${TARGET}\") ] }")
+  #printf '%b\n' "${domains}"
+
+  while read domain; do
+    printf '%b\n' "The domain '${domain}' has volumes on the '${TARGET}' dataset."
+    if [ "${SANOID_SCRIPT}" == "pre" ]; then
+      printf '%b\n' "virsh pause \"${domain}\""
+    fi
+
+    while read zfs_dataset; do
+      if [ "${SANOID_SCRIPT}" == "pre" ]; then
+        # Atomic Snapshot creation
+        printf '%b\n' "The domain '${domain}' needs an atomic snapshot created on '${zfs_dataset}'"
+        printf '%b\n' "zfs snapshot \"${zfs_dataset}@atomic_$(date +%s)\""
+      elif [ "${SANOID_SCRIPT}" == "post" ]; then
+        true
+        # Should we run syncoid here?
+      elif [ "${SANOID_SCRIPT}" == "prune" ]; then
+        # Atomic Snapshot cleanup
+        while read snapname; do
+	  printf '%b\n' "zfs destroy \"${snapname}\""
+	done < <(zfs list -t snapshot -r "${zfs_dataset}" | grep "@atomic_")
+      fi
+    done < <(printf '%b' "${domains}" | yq ".domains[] | select(.name == \"${domain}\") | .block_devices[].zfs_dataset" | grep -v 'null' | sort | uniq)
+    printf '%b\n' "virsh resume \"${domain}\""
+  done < <(printf '%b' "${domains}" | yq '.domains[].name')
+done < <(printf '%b\n' "${SANOID_TARGETS}" | sed 's/,/\n/g')
