@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+virsh_list_all=$(virsh list --all | awk 'BEGIN{print "domains:"}{if ((length($3) > 0) && ($2 !~ "Name")){print "- name: "$2"\n  id: \""$1"\"\n  state: "$3$4}}')
+
+zfs_mountpoints=$(zfs list -o name,mountpoint)
+
+printf '%b\n' "domains:"
+while read domain; do
+  #awk 'BEGIN{print "domains:"}{if ((length($3) > 0) && ($2 !~ "Name")){print "- name: "$2"\n  id: \""$1"\"\n  state: "$3$4}}'
+  virsh dominfo "${domain}" | awk 'BEGIN{FS=": "; dash="-"}{gsub(/ /,"",$1); sub(/^[ \t]+|[ \t]+$/, "",$2); if (length($1) > 0){print dash" "tolower($1)": \"" $2 "\""}; dash=" "}'
+  
+  # Get block devices
+  domblklist=$(virsh domblklist "${domain}" | awk 'BEGIN{print "block_devices:"}{if ((length($2) > 0) && ($1 !~ "Target")){print "- target: "$1"\n  source: \""$2"\"\n"}}')
+  #printf '%b\n' "${domblklist}"
+
+  printf '  %b\n' "block_devices:"
+  while read blkdev; do
+    printf '%s' "${domblklist}" | yq ".block_devices[] | select(.source == \"${blkdev}\")" | awk '{if ($1 ~ "target") print "  - "$0; else print "    "$0}'
+    if [ -e $(readlink -e "${blkdev}") ] && [ $(readlink -e "${blkdev}") ]; then
+      printf '    %b\n' "source_exists: true"
+      printf '    mount_point: %b\n' $(stat -c %m -- $(readlink -e "${blkdev}"))
+      printf '    zfs_dataset: "%b"\n' $(printf '%b' "${zfs_mountpoints}" | grep $(stat -c %m -- $(readlink -e "${blkdev}")) | awk '{print $1}')
+    else
+      printf '    %b\n' "source_exists: false"
+    fi
+  done < <(printf '%s' "${domblklist}" | yq '.block_devices[].source')
+
+  virsh domiflist "${domain}" | awk 'BEGIN{print "  network_interfaces:"}{if ((length($2) > 0) && ($1 !~ "Interface")){print "  - interface: \""$1"\"\n    type: \""$2"\"\n    source: \""$3"\"\n    model: \""$4"\"\n    mac: \""$5"\"\n"}}'
+done < <(printf '%s' "${virsh_list_all}" | yq '.domains[].name')
