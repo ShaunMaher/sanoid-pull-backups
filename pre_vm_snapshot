@@ -66,6 +66,7 @@ while read TARGET; do
 	    destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
             if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
               echo "syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+	      # sudo systemd-run --unit="syncoid-SSD1/VMs/machines/portainer1.ghanima.net" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions="w" SSD1/VMs/machines/portainer1.ghanima.net HDD1/Backups/Syncoid/ph3.local/portainer1.ghanima.net
             fi
 	  fi
 	done
