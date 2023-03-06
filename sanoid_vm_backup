@@ -6,6 +6,7 @@ libvirt_domains=$(libvirt_domains)
 
 export SANOID_TARGETS=${SANOID_TARGETS:-${SANOID_TARGET}}
 export SANOID_SCRIPT=${SANOID_SCRIPT:-${1}}
+export SANOID_SNAPNAMES=${SANOID_SNAPNAMES:-${SANOID_SNAPNAME}}
 export
 
 while read TARGET; do
@@ -23,6 +24,7 @@ while read TARGET; do
       printf '%b\n' "The domain '${domain}' is currently '${domain_state}'."
       printf '%b\n' "The domain '${domain}' suppports filesystem freezing: ${dom_freeze_support}"
       printf '%b\n' "The domain '${domain}' suppports filesystem trimming: ${dom_trim_support}"
+      #TODO: export the machine .xml with "virsh dumpxml"
       if [ "${domain_state}" == "running" ]; then
         # Ask the guest to trim it's filesystems
         if [ "${dom_trim_support}" == "true" ]; then
@@ -45,9 +47,11 @@ while read TARGET; do
     while read zfs_dataset; do
       if [ "${SANOID_SCRIPT}" == "pre" ]; then
         # Atomic Snapshot creation
+	#TODO: what about datasets we don't want to snapshot
+	atomic_name="atomic_"$(printf '%b' "${SANOID_SNAPNAMES}" | awk 'BEGIN{FS="_"}{print $2"_"$3}')
         printf '%b\n' "The domain '${domain}' needs an atomic snapshot created on '${zfs_dataset}'"
-        printf '%b\n' "zfs snapshot \"${zfs_dataset}@atomic_\$(date +%s)\""
-	zfs snapshot "${zfs_dataset}@atomic_$(date +%s)"
+        printf '%b\n' "zfs snapshot \"${zfs_dataset}@${atomic_name}"
+	zfs snapshot "${zfs_dataset}@${atomic_name}"
       elif [ "${SANOID_SCRIPT}" == "post" ]; then
         true
         # Should we run syncoid here?
@@ -58,23 +62,29 @@ while read TARGET; do
 	  ds_name=$(basename "${zfs_dataset}")
 	  destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
 	  if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
-            echo "syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+            #TODO: For pull backups...?
+            echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+            systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
 	  fi
 	  
 	  if [ "${zfs_dataset}" != "${TARGET}" ]; then
             destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${zfs_dataset}" | tail -n +2 | awk '{print $3}')
 	    destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
             if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
-              echo "syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
-	      # sudo systemd-run --unit="syncoid-SSD1/VMs/machines/portainer1.ghanima.net" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions="w" SSD1/VMs/machines/portainer1.ghanima.net HDD1/Backups/Syncoid/ph3.local/portainer1.ghanima.net
+              echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+	      systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
             fi
 	  fi
 	done
       elif [ "${SANOID_SCRIPT}" == "prune" ]; then
         # Atomic Snapshot cleanup
+	atomic_name="atomic_"$(printf '%b' "${SANOID_SNAPNAMES}" | awk 'BEGIN{FS="_"}{print $2"_"$3}')
+
         while read snapname; do
 	  printf '%b\n' "zfs destroy \"${snapname}\""
-	done < <(zfs list -t snapshot -r "${zfs_dataset}" | grep "@atomic_")
+	done < <(zfs list -t snapshot -r "${zfs_dataset}" | grep "@${atomic_name}")
+
+	# TODO: Cleanup bookmarks as they will hold space from being freed
       fi
     done < <(printf '%b' "${domains}" | yq ".domains[] | select(.name == \"${domain}\") | .block_devices[].zfs_dataset" | grep -v 'null' | sort | uniq)
 

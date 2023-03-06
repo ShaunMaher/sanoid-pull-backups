@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+echo "/usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+/usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
+
+#TODO: record success/failure as a user attribute on the source DS

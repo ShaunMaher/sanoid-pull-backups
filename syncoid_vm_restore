@@ -1,0 +1,12 @@
+
+# get restore points from destinations
+
+# make sure all required @atomic_ snapshots still exist
+
+# syncoid destination to temp target(s)
+
+# power off VM
+
+# rename temp targets to real targets
+
+# power on VM
