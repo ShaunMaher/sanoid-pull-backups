@@ -30,13 +30,13 @@ while read TARGET; do
         if [ "${dom_trim_support}" == "true" ]; then
           printf '%b\n' "virsh domfstrim \"${domain}\""
           virsh domfstrim "${domain}" || true
-	fi
+        fi
 
-	# Ask the guest to freeze it's filesystems
+  # Ask the guest to freeze it's filesystems
         if [ "${dom_freeze_support}" == "true" ]; then
           printf '%b\n' "virsh domfsfreeze \"${domain}\""
           virsh domfsfreeze "${domain}" || true
-	fi
+        fi
 
         # Everything should now be synced to disk.  Suspend the VM.
         printf '%b\n' "virsh suspend \"${domain}\""
@@ -47,44 +47,44 @@ while read TARGET; do
     while read zfs_dataset; do
       if [ "${SANOID_SCRIPT}" == "pre" ]; then
         # Atomic Snapshot creation
-	#TODO: what about datasets we don't want to snapshot
-	atomic_name="atomic_"$(printf '%b' "${SANOID_SNAPNAMES}" | awk 'BEGIN{FS="_"}{print $2"_"$3}')
+        #TODO: what about datasets we don't want to snapshot
+        atomic_name="atomic_"$(printf '%b' "${SANOID_SNAPNAMES}" | awk 'BEGIN{FS="_"}{print $2"_"$3}')
         printf '%b\n' "The domain '${domain}' needs an atomic snapshot created on '${zfs_dataset}'"
         printf '%b\n' "zfs snapshot \"${zfs_dataset}@${atomic_name}"
-	zfs snapshot "${zfs_dataset}@${atomic_name}"
+        zfs snapshot "${zfs_dataset}@${atomic_name}"
       elif [ "${SANOID_SCRIPT}" == "post" ]; then
         true
         # Should we run syncoid here?
 
         for (( d=0; d<=10; d++ )) do
           #user:net.openoid.syncoid.destination.${d}
-	  destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${TARGET}" | tail -n +2 | awk '{print $3}')
-	  ds_name=$(basename "${zfs_dataset}")
-	  destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
-	  if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
-            #TODO: For pull backups...?
-            echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
-            systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
-	  fi
-	  
-	  if [ "${zfs_dataset}" != "${TARGET}" ]; then
+          destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${TARGET}" | tail -n +2 | awk '{print $3}')
+          ds_name=$(basename "${zfs_dataset}")
+          destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
+          if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
+                  #TODO: For pull backups...?
+                  echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+                  systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
+          fi
+    
+          if [ "${zfs_dataset}" != "${TARGET}" ]; then
             destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${zfs_dataset}" | tail -n +2 | awk '{print $3}')
-	    destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
+            destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
             if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
               echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
-	      systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
+              systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
             fi
-	  fi
-	done
+          fi
+        done
       elif [ "${SANOID_SCRIPT}" == "prune" ]; then
         # Atomic Snapshot cleanup
-	atomic_name="atomic_"$(printf '%b' "${SANOID_SNAPNAMES}" | awk 'BEGIN{FS="_"}{print $2"_"$3}')
+        atomic_name="atomic_"$(printf '%b' "${SANOID_SNAPNAMES}" | awk 'BEGIN{FS="_"}{print $2"_"$3}')
 
         while read snapname; do
-	  printf '%b\n' "zfs destroy \"${snapname}\""
-	done < <(zfs list -t snapshot -r "${zfs_dataset}" | grep "@${atomic_name}")
+          printf '%b\n' "zfs destroy \"${snapname}\""
+        done < <(zfs list -t snapshot -r "${zfs_dataset}" | grep "@${atomic_name}")
 
-	# TODO: Cleanup bookmarks as they will hold space from being freed
+        # TODO: Cleanup bookmarks as they will hold space from being freed
       fi
     done < <(printf '%b' "${domains}" | yq ".domains[] | select(.name == \"${domain}\") | .block_devices[].zfs_dataset" | grep -v 'null' | sort | uniq)
 
