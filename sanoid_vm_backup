@@ -32,7 +32,7 @@ while read TARGET; do
           virsh domfstrim "${domain}" || true
         fi
 
-  # Ask the guest to freeze it's filesystems
+        # Ask the guest to freeze it's filesystems
         if [ "${dom_freeze_support}" == "true" ]; then
           printf '%b\n' "virsh domfsfreeze \"${domain}\""
           virsh domfsfreeze "${domain}" || true
@@ -62,9 +62,9 @@ while read TARGET; do
           ds_name=$(basename "${zfs_dataset}")
           destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
           if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
-                  #TODO: For pull backups...?
-                  echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
-                  systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
+            #TODO: For pull backups...?
+            echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+            systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
           fi
     
           if [ "${zfs_dataset}" != "${TARGET}" ]; then
