@@ -1,6 +1,46 @@
 #!/usr/bin/env bash
 
+while getopts "d:s:n:" opt; do
+  case $opt in
+    d)
+      DEST_DATASET="${OPTARG}"
+      ;;
+    n)
+      DEST_NBD="${OPTARG}"
+      ;;
+    s)
+      SOURCE_DATASET="${OPTARG}"
+      ;;
+  esac
+done
+
+ZPOOL_NAME="${DEST_DATASET}"
+while [ $(dirname "${ZPOOL_NAME}") != "." ]; do
+  ZPOOL_NAME=$(dirname "${ZPOOL_NAME}")
+  echo "${ZPOOL_NAME}"
+done
+
+if [ "${DEST_NBD}" != "" ]; then
+  modprobe nbd
+  nbd-client -name disk 172.31.2.53 9001 --timeout 30 --persist /dev/nbd0
+  zpool import "${ZPOOL_NAME}"
+fi
+
+# Start nbd_zpool_monitor
+
 echo "/usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
 /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
 
+# Stop nbd_zpool_monitor
+sleep 60
+
+# TODO: Check if the zpool hs stopped being locked ("/run/zpool_monitor/${ZPOOL_NAME}")
+if [ "${DEST_NBD}" != "" ]; then
+  zpool export "${ZPOOL_NAME}"
+  nbd-client -d TODO
+fi
+
+
 #TODO: record success/failure as a user attribute on the source DS
+
+#TODO: Cleanup bookmarks?

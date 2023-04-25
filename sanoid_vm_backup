@@ -61,9 +61,11 @@ while read TARGET; do
           destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${TARGET}" | tail -n +2 | awk '{print $3}')
           ds_name=$(basename "${zfs_dataset}")
           destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
+          destination_nbd=$(zfs get "user:net.openoid.syncoid.destination_nbd.${d}" "${TARGET}" | tail -n +2 | awk '{print $3}')
+
           if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
             #TODO: For pull backups...?
-            echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+            echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" -G /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
             systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
           fi
     
@@ -71,7 +73,7 @@ while read TARGET; do
             destination=$(zfs get "user:net.openoid.syncoid.destination.${d}" "${zfs_dataset}" | tail -n +2 | awk '{print $3}')
             destination=$(printf '%b' "${destination}" | sed "s/%d/${ds_name}/g")
             if [ "${destination}" != "" ] && [ "${destination}" != "-" ]; then
-              echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
+              echo "systemd-run --unit=\"syncoid-${zfs_dataset}\" -G /usr/sbin/syncoid --compress=none --create-bookmark --no-sync-snap --sendoptions=\"w\" \"${zfs_dataset}\" \"${destination}\""
               systemd-run --unit="syncoid-${zfs_dataset}" /usr/sbin/syncoid --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "${zfs_dataset}" "${destination}"
             fi
           fi

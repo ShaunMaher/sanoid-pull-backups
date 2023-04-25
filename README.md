@@ -36,3 +36,34 @@ But, Sanoid and Syncoid provide all I need.  What are these scripts for?
   * This is way more secure because the source (which may be compromised) does
     not need access to the destination datasets.  A compromised source can't
     delete it's own backups.
+
+
+## Doco that needs to be put somewhere better later
+### SSH key authentication
+
+**Source Server**
+```
+zfs allow -u syncoid send,hold,userprop tank/vms
+sudo useradd -r -d /var/lib/syncoid -m syncoid
+sudo -u syncoid -i
+```
+```
+mkdir .ssh; chmod 700 .ssh
+ssh-keygen -t ed25519 -C "ph3@zfs-s3-gateway" -N "" -f ~/.ssh/ph3@zfs-s3-gateway
+printf '%b' "Host zfs-s3-gateway\n  HostName        172.31.6.149\n  User            ph3\n  AddKeysToAgent  no\n  identityFile    ~/.ssh/ph3@zfs-s3-gateway\n\n" >>~/.ssh/config
+```
+
+```
+sudo zfs allow -u ph3 snapshot,create,receive,aclinherit,hold,mount,userprop tank/znapzend
+sudo useradd -r -d /var/lib/syncoid -m syncoid
+sudo -u syncoid -i
+```
+```
+mkdir .ssh; chmod 700 .ssh
+printf '%b' "ssh-ed25519 AAAA...\n" >>~/.ssh/authorized_keys
+chmod 600 ~/.ssh/*
+```
+
+```
+/usr/sbin/syncoid --no-privilege-elevation --debug --dumpsnaps --compress=none --create-bookmark --no-sync-snap --sendoptions="w" "SSD1/VMs/machines/portainer1.ghanima.net" "zfs-s3-gateway:s3bucket/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
+```

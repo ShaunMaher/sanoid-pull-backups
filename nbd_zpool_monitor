@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+while getopts "d:" opt; do
+  case $opt in
+    d)
+      DEST_DATASET="${OPTARG}"
+      ;;
+  esac
+done
+
+ZPOOL_NAME="${DEST_DATASET}"
+while [ $(dirname "${ZPOOL_NAME}") != "." ]; do
+  ZPOOL_NAME=$(dirname "${ZPOOL_NAME}")
+  echo "${ZPOOL_NAME}"
+done
+
+ZPOOL_DEVICES=$(zpool status s3bucket |grep '[[:space:]]nbd[[:digit:]]' | awk '{print $1}')
+
+function reset_nbd_device() {
+  local ZPOOL_DEVICE_FULL="${1}"
+  local ZPOOL_DEVICE=$(basename "${ZPOOL_DEVICE_FULL}")
+  echo "${ZPOOL_DEVICE_FULL} needs to be reset"
+  echo nbd-client -d ${ZPOOL_DEVICE_FULL}
+  # I have searched and searched and can't work out a way to get the IP and Port
+  #  dynamically.
+  echo nbd-client -name disk 127.0.0.1 10001 --timeout 60 ${ZPOOL_DEVICE_FULL}
+  echo zpool clear ${ZPOOL_NAME} ${ZPOOL_DEVICE}
+}
+
+# NBD health loop
+while true; do
+  mkdir -p /run/zpool_monitor
+  echo "$$ $(date +%s)" >"/run/zpool_monitor/${ZPOOL_NAME}"
+
+  ZPOOL_STATUS=$(timeout -k 30 20 zpool status "${ZPOOL_NAME}")
+  while read ZPOOL_DEVICE; do
+    ZPOOL_DEVICE_FULL="/dev/${ZPOOL_DEVICE}"
+    NBDPID=$(nbd-client -c "${ZPOOL_DEVICE_FULL}")
+
+    DEVICE_ERRORS=$(printf '%b' "${ZPOOL_STATUS}" | grep "[[:space:]]${ZPOOL_DEVICE}[[:space:]]" | awk '{print int($3+$4+$5)}')
+    DEVICE_STATUS=$(printf '%b' "${ZPOOL_STATUS}" | grep "[[:space:]]${ZPOOL_DEVICE}[[:space:]]" | awk '{print $2}')
+
+    if [ "${NBDPID}" == "" ] || [ $DEVICE_ERRORS -gt 0 ] || [ "${DEVICE_STATUS}" != "ONLINE" ]; then
+      reset_nbd_device "${ZPOOL_DEVICE_FULL}"
+    fi
+  done < <(printf '%s\n' "${ZPOOL_DEVICES}")
+  printf '%b\n' "${ZPOOL_STATUS}"
+  sleep 10
+  date
+done | tee /tmp/nbd_zpool_monitor.log
