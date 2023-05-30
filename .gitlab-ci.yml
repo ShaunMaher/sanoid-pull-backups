@@ -19,6 +19,7 @@ docker-chisel-image-get-version:
   variables:
     UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
     UPSTREAM_DOCKERFILE_PATH: '.'
+    IMAGE_NAME: 'chisel'
   script:
     - |
       OPWD=$(pwd)
@@ -35,6 +36,7 @@ docker-chisel-image-build:
   variables:
     UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
     UPSTREAM_DOCKERFILE_PATH: '.'
+    IMAGE_NAME: 'chisel'
 
 docker-chisel-image-push:
   stage: docker-push
@@ -42,6 +44,7 @@ docker-chisel-image-push:
   variables:
     UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
     UPSTREAM_DOCKERFILE_PATH: '.'
+    IMAGE_NAME: 'chisel'
 
 docker-syncoid-image-get-version:
   stage: docker-get-version

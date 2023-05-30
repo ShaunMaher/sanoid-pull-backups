@@ -6,11 +6,12 @@ services:
     container_name: 'nginx-ingress'
     hostname: 'nginx-ingress'
     environment:
+      TZ: Europe/Luxembourg
   chisel:
-    image: 'gitlab/gitlab-ce:15.9.2-ce.0'
+    image: 'cr.ghanima.net/chisel:latest'
     restart: always
-    container_name: 'nginx-ingress'
-    hostname: 'nginx-ingress'
+    environment:
+      TZ: Europe/Luxembourg
   gitlabrunner:
     image: gitlab/gitlab-runner:v15.16.0
     restart: always
