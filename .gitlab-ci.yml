@@ -23,12 +23,16 @@ docker-chisel-image-get-version:
   script:
     - |
       OPWD=$(pwd)
+      IMAGE_NAME="${IMAGE_NAME:-$(basename "${CI_REGISTRY_IMAGE}")}"
+
       apk add git || apt install git
       git clone ${UPSTREAM_GIT_URL} "${OPWD}/build-tmp"
       cd "${OPWD}/build-tmp"
       latest_tag=$(git describe --abbrev=0 --tags)
       cd "${OPWD}"
-      echo "VERSION_TAGS[latest]=${latest_tag}" | tee -a VERSION_TAGS
+      echo "VERSION_TAGS[latest]=${latest_tag}" | tee -a ${IMAGE_NAME}-VERSION_TAGS
+      cat ${IMAGE_NAME}-VERSION_TAGS
+      readlink -f "${IMAGE_NAME}-VERSION_TAGS"
 
 docker-chisel-image-build:
   stage: docker-build
@@ -56,7 +60,8 @@ docker-syncoid-image-get-version:
     IMAGE_NAME: 'syncoid-pull'
   script:
     - |
-      echo "VERSION_TAGS[latest]=jammy" | tee -a VERSION_TAGS
+      IMAGE_NAME="${IMAGE_NAME:-$(basename "${CI_REGISTRY_IMAGE}")}"
+      echo "VERSION_TAGS[latest]=jammy" | tee -a ${IMAGE_NAME}-VERSION_TAGS
 
 docker-syncoid-image-build:
   stage: docker-build
@@ -73,3 +78,11 @@ docker-syncoid-image-push:
     DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
     IMAGE_NAME: 'syncoid-pull'
+
+.run-backups:
+  tags:
+    TODO
+  image: cr.ghanima.net/applications/sanoid-helper-scripts/syncoid-pull:latest
+  script: |
+    echo "Hi"
+    exit 0
