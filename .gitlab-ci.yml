@@ -48,7 +48,7 @@ docker-syncoid-image-get-version:
   extends: .docker:get-version
   image: bash:latest
   variables:
-    DOCKERFILE_PATH: 'pull-server/'
+    DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
     IMAGE_NAME: 'syncoid-pull'
   script:
@@ -59,7 +59,7 @@ docker-syncoid-image-build:
   stage: docker-build
   extends: .docker:build-image-from-upstream
   variables:
-    DOCKERFILE_PATH: 'pull-server/'
+    DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
     IMAGE_NAME: 'syncoid-pull'
 
@@ -67,6 +67,6 @@ docker-syncoid-image-push:
   stage: docker-push
   extends: .docker:push-image-to-registry
   variables:
-    DOCKERFILE_PATH: 'pull-server/'
+    DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
     IMAGE_NAME: 'syncoid-pull'
