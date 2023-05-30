@@ -19,6 +19,7 @@ docker-image-get-version:
   script:
     - |
       OPWD=$(pwd)
+      apk add git || apt install git
       git clone ${UPSTREAM_GIT_URL} "${OPWD}/build-tmp"
       cd "${OPWD}/build-tmp"
       latest_tag=$(git describe --abbrev=0 --tags)
