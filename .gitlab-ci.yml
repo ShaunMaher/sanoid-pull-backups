@@ -1,0 +1,30 @@
+variables:
+  UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
+  UPSTREAM_DOCKERFILE_PATH: '.'
+
+stages:
+  - docker-get-version
+  - docker-build
+  - docker-push
+
+include:
+  - project: applications/tooling
+    ref: main
+    file: 'gitlab-ci-includes/build-oci-image.yml'
+
+docker-image-get-version:
+  stage: docker-get-version
+  extends: .docker:get-version
+  image: bash:latest
+  script:
+    - |
+      OPWD=$(pwd)
+      git clone ${UPSTREAM_GIT_URL} "${OPWD}/build-tmp"
+      cd "${OPWD}/build-tmp"
+      latest_tag=$(git describe --abbrev=0 --tags)
+      cd "${OPWD}"
+      echo "VERSION_TAGS[latest]=${latest_tag}" | tee -a VERSION_TAGS
+
+docker-image-build:
+  stage: docker-build
+  extends: .docker:build-image-from-upstream
