@@ -1,3 +1,2 @@
 FROM ubuntu:jammy
-RUN apt install -y zfsutils-linux mbuffer lzop
-RUN mkdir -p /var/lib/syncoid
+RUN apt install -y zfsutils-linux mbuffer lzop sanoid

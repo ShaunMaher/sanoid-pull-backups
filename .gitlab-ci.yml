@@ -12,10 +12,13 @@ include:
     ref: main
     file: 'gitlab-ci-includes/build-oci-image.yml'
 
-docker-image-get-version:
+docker-chisel-image-get-version:
   stage: docker-get-version
   extends: .docker:get-version
   image: bash:latest
+  variables:
+    UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
+    UPSTREAM_DOCKERFILE_PATH: '.'
   script:
     - |
       OPWD=$(pwd)
@@ -26,6 +29,44 @@ docker-image-get-version:
       cd "${OPWD}"
       echo "VERSION_TAGS[latest]=${latest_tag}" | tee -a VERSION_TAGS
 
-docker-image-build:
+docker-chisel-image-build:
   stage: docker-build
   extends: .docker:build-image-from-upstream
+  variables:
+    UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
+    UPSTREAM_DOCKERFILE_PATH: '.'
+
+docker-chisel-image-push:
+  stage: docker-push
+  extends: .docker:push-image-to-registry
+  variables:
+    UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
+    UPSTREAM_DOCKERFILE_PATH: '.'
+
+docker-syncoid-image-get-version:
+  stage: docker-get-version
+  extends: .docker:get-version
+  image: bash:latest
+  variables:
+    DOCKERFILE_PATH: 'pull-server/'
+    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
+    IMAGE_NAME: 'syncoid-pull'
+  script:
+    - |
+      echo "VERSION_TAGS[latest]=jammy" | tee -a VERSION_TAGS
+
+docker-syncoid-image-build:
+  stage: docker-build
+  extends: .docker:build-image-from-upstream
+  variables:
+    DOCKERFILE_PATH: 'pull-server/'
+    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
+    IMAGE_NAME: 'syncoid-pull'
+
+docker-syncoid-image-push:
+  stage: docker-push
+  extends: .docker:push-image-to-registry
+  variables:
+    DOCKERFILE_PATH: 'pull-server/'
+    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
+    IMAGE_NAME: 'syncoid-pull'
