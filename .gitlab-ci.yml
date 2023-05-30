@@ -57,7 +57,7 @@ docker-syncoid-image-get-version:
 
 docker-syncoid-image-build:
   stage: docker-build
-  extends: .docker:build-image-from-upstream
+  extends: .docker:build-image-from-dockerfile
   variables:
     DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
