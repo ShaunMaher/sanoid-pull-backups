@@ -18,7 +18,7 @@ services:
       /bin/sh -c '
         while :; do
           sleep 5m & wait $${!};
-          ls /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem
+          ls /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem;
           if [-e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
             echo "Enabling SSL"
             cp /tmp/https.conf /etc/nginx/conf.d/http.conf;
@@ -27,7 +27,8 @@ services:
           fi;
           nginx -s reload;
         done &
-        nginx -g \"daemon off;\"'"
+        nginx -g \"daemon off;\"
+      '
     configs:
       - source: nginx_conf
         target: /etc/nginx/nginx.conf
