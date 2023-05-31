@@ -1,21 +1,45 @@
 version: '3.8'
+configs:
+  gitlabrunner_config:
+    file: ${DEPLOYMENT}/config.toml
+  chisel_users:
+    file: ${DEPLOYMENT}/users.json
+  nginx_conf:
+    file: ${DEPLOYMENT}/nginx.conf
 services:
   nginx-ingress:
-    image: 'nginx'
+    image: 'nginx:latest'
     restart: always
-    container_name: 'nginx-ingress'
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/TODO.conf
+        #uid: "103"
+        #gid: "103"
+        #mode: 0440
     hostname: 'nginx-ingress'
     environment:
       TZ: Europe/Luxembourg
   chisel:
-    image: 'cr.ghanima.net/chisel:latest'
+    image: 'cr.ghanima.net/applications/sanoid-helper-scripts/chisel:latest'
+    command: [ "server", "-v", "--host", "0.0.0.0", "--port", "8081", "--keepalive", "45s", "--authfile", "/etc/chisel/users.json"]
+    configs:
+      - source: chisel_users
+        target: /etc/chisel/users.json
+        #uid: "103"
+        #gid: "103"
+        #mode: 0440
     restart: always
     environment:
       TZ: Europe/Luxembourg
   gitlabrunner:
-    image: gitlab/gitlab-runner:v15.16.0
+    image: gitlab/gitlab-runner:v16.0.0
+    configs:
+      - source: gitlabrunner_config
+        target: /etc/gitlab-runner/config.toml
+        uid: "0"
+        gid: "0"
+        mode: 0600
     restart: always
-    container_name: runner
     hostname: runner
     environment:
       TZ: Europe/Luxembourg
