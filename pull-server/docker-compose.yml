@@ -53,7 +53,7 @@ services:
             --webroot -w /var/www/certbot \
             ${CERTBOT_EMAIL} \
             ${PUBLIC_FQDN} \
-            --rsa-key-size $RSA_KEYSIZE \
+            --rsa-key-size ${RSA_KEYSIZE} \
             --agree-tos \
             --force-renewal
         fi
