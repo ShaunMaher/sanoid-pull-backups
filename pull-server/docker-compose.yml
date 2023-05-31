@@ -48,7 +48,7 @@ services:
         trap exit TERM;
         RSA_KEYSIZE="${RSA_KEYSIZE:-4096}"
         if [ ! -e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
-          certbot \
+          echo \
             certonly \
             --webroot -w /var/www/certbot \
             ${CERTBOT_EMAIL} \
