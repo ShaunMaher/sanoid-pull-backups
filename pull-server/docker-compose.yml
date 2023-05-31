@@ -27,7 +27,7 @@ services:
           fi;
           nginx -s reload;
         done &
-        nginx -g \"daemon off;\"
+        nginx -g "daemon off;"
       '
     configs:
       - source: nginx_conf
