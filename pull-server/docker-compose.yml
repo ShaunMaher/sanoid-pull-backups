@@ -49,6 +49,7 @@ services:
         RSA_KEYSIZE="${RSA_KEYSIZE:-4096}"
         if [ ! -e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
           certbot \
+            certonly \
             --webroot -w /var/www/certbot \
             ${CERTBOT_EMAIL} \
             ${PUBLIC_FQDN} \
