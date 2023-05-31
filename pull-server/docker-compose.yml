@@ -50,4 +50,4 @@ services:
         target: /var/run/docker.sock
 
 volumes:
-  gitlab_config:
+  gitlab_runner_config:
