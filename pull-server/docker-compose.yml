@@ -6,28 +6,55 @@ configs:
     file: ${DEPLOYMENT}/users.json
   nginx_conf:
     file: ${DEPLOYMENT}/nginx.conf
+  nginx_http_conf:
+    file: ${DEPLOYMENT}/http.conf
+  nginx_https_conf:
+    file: ${DEPLOYMENT}/https.conf
 services:
   nginx-ingress:
     image: 'nginx:latest'
     restart: always
+    command: "/bin/sh -c 'while :; do sleep 5m & wait $${!}; if [-e /etc/letsencrypt/live/lu.ghanima.net/fullchain.pem ]; then cp /tmp/https.conf /etc/nginx/conf.d/http.conf; fi; nginx -s reload; done & nginx -g \"daemon off;\"'"
     configs:
       - source: nginx_conf
-        target: /etc/nginx/TODO.conf
-        #uid: "103"
-        #gid: "103"
-        #mode: 0440
+        target: /etc/nginx/nginx.conf
+        uid: "0"
+        gid: "0"
+        mode: 0644
+      - source: nginx_http_conf
+        target: /etc/nginx/conf.d/http.conf
+        uid: "0"
+        gid: "0"
+        mode: 0644
+      - source: nginx_https_conf
+        target: /tmp/https.conf
+        uid: "0"
+        gid: "0"
+        mode: 0644
     hostname: 'nginx-ingress'
     environment:
       TZ: Europe/Luxembourg
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+  certbot:
+    image: certbot/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
   chisel:
     image: 'cr.ghanima.net/applications/sanoid/chisel:latest'
     command: [ "server", "-v", "--host", "0.0.0.0", "--port", "8081", "--keepalive", "45s", "--authfile", "/etc/chisel/users.json"]
     configs:
       - source: chisel_users
         target: /etc/chisel/users.json
-        #uid: "103"
-        #gid: "103"
-        #mode: 0440
+        uid: "0"
+        gid: "0"
+        mode: 0444
     restart: always
     environment:
       TZ: Europe/Luxembourg
@@ -51,3 +78,5 @@ services:
 
 volumes:
   gitlab_runner_config:
+  certbot_conf:
+  certbot_www:
