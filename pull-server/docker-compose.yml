@@ -14,13 +14,15 @@ services:
   nginx-ingress:
     image: 'nginx:latest'
     restart: always
+    # If the certificates for SSL don't exist (because certbot hasn't
+    #  created them yet), Nginx will startup with just HTTP (which is
+    #  needed for certbot to do it's work).
     command: |
       /bin/sh -c '
         while :; do
           sleep 5m & wait $${!};
           ls /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem;
 
-          # Have the certificates been created since startup?
           if [ -e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
             echo "Enabling SSL"
             cp /tmp/https.conf /etc/nginx/conf.d/http.conf;
@@ -30,9 +32,6 @@ services:
           nginx -s reload;
         done &
 
-        # If the certificates for SSL don't exist (because certbot hasn't
-        #  created them yet), Nginx will startup with just HTTP (which is
-        #  needed for certbot to do it's work).
         if [ -e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
           echo "Enabling SSL"
           cp /tmp/https.conf /etc/nginx/conf.d/http.conf;
