@@ -14,7 +14,7 @@ services:
   nginx-ingress:
     image: 'nginx:latest'
     restart: always
-    command: "/bin/sh -c 'while :; do sleep 5m & wait $${!}; if [-e /etc/letsencrypt/live/lu.ghanima.net/fullchain.pem ]; then cp /tmp/https.conf /etc/nginx/conf.d/http.conf; fi; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    command: "/bin/sh -c 'while :; do sleep 5m & wait $${!}; if [-e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then cp /tmp/https.conf /etc/nginx/conf.d/http.conf; fi; nginx -s reload; done & nginx -g \"daemon off;\"'"
     configs:
       - source: nginx_conf
         target: /etc/nginx/nginx.conf
@@ -34,6 +34,7 @@ services:
     hostname: 'nginx-ingress'
     environment:
       TZ: Europe/Luxembourg
+      PUBLIC_FQDN: $PUBLIC_FQDN
     ports:
       - "80:80"
       - "443:443"
@@ -42,7 +43,25 @@ services:
       - certbot_www:/var/www/certbot
   certbot:
     image: certbot/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    entrypoint: |
+      /bin/sh -c '
+        trap exit TERM;
+        RSA_KEYSIZE="${RSA_KEYSIZE:-4096}"
+        if [ ! -e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
+          certbot \
+            --webroot -w /var/www/certbot \
+            ${CERTBOT_EMAIL} \
+            ${PUBLIC_FQDN} \
+            --rsa-key-size $RSA_KEYSIZE \
+            --agree-tos \
+            --force-renewal
+        fi
+        while :; do certbot renew; sleep 12h & wait $${!}; done;
+      '
+    environment:
+      TZ: Europe/Luxembourg
+      PUBLIC_FQDN: $PUBLIC_FQDN
+      CERTBOT_EMAIL: $CERTBOT_EMAIL
     volumes:
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
