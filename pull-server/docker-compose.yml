@@ -50,8 +50,8 @@ services:
           certbot \
             certonly \
             --webroot -w /var/www/certbot \
-            ${CERTBOT_EMAIL} \
-            ${PUBLIC_FQDN} \
+            --email ${CERTBOT_EMAIL} \
+            -d ${PUBLIC_FQDN} \
             --rsa-key-size 4096 \
             --agree-tos \
             --force-renewal
