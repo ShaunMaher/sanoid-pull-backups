@@ -46,7 +46,7 @@ services:
     entrypoint: |
       /bin/sh -c '
         trap exit TERM;
-        RSA_KEYSIZE="${RSA_KEYSIZE:-4096}"
+        RSA_KEYSIZE="${RSA_KEYSIZE:-4096}";
         if [ ! -e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
           echo \
             certonly \
@@ -63,6 +63,7 @@ services:
       TZ: Europe/Luxembourg
       PUBLIC_FQDN: $PUBLIC_FQDN
       CERTBOT_EMAIL: $CERTBOT_EMAIL
+      RSA_KEYSIZE: 4096
     volumes:
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
