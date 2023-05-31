@@ -47,7 +47,7 @@ services:
       /bin/sh -c '
         trap exit TERM;
         if [ ! -e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
-          echo \
+          certbot \
             certonly \
             --webroot -w /var/www/certbot \
             ${CERTBOT_EMAIL} \
