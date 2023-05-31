@@ -52,7 +52,7 @@ services:
             --webroot -w /var/www/certbot \
             ${CERTBOT_EMAIL} \
             ${PUBLIC_FQDN} \
-            --rsa-key-size ${RSA_KEYSIZE} \
+            --rsa-key-size 4096 \
             --agree-tos \
             --force-renewal
         fi
@@ -62,7 +62,6 @@ services:
       TZ: Europe/Luxembourg
       PUBLIC_FQDN: $PUBLIC_FQDN
       CERTBOT_EMAIL: $CERTBOT_EMAIL
-      RSA_KEYSIZE: 4096
     volumes:
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
