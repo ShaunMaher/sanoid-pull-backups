@@ -27,6 +27,13 @@ services:
           fi;
           nginx -s reload;
         done &
+
+        if [-e /etc/letsencrypt/live/${PUBLIC_FQDN}/fullchain.pem ]; then
+          echo "Enabling SSL"
+          cp /tmp/https.conf /etc/nginx/conf.d/http.conf;
+        else
+          echo "Not enabling SSL"
+        fi;
         nginx -g "daemon off;"
       '
     configs:
