@@ -1,0 +1,13 @@
+ARG BASE_IMAGE=ubuntu:jammy
+
+FROM cr.ghanima.net/applications/sanoid/chisel:latest AS chisel
+
+FROM ${BASE_IMAGE}
+ARG TARGETPLATFORM
+RUN        --mount=type=cache,target=/var/cache/apt,sharing=locked,id=var-cache-apt-$TARGETPLATFORM \
+           --mount=type=cache,target=/var/lib/apt,sharing=locked,id=var-lib-apt-$TARGETPLATFORM \
+           --mount=type=tmpfs,target=/var/cache/apk \
+           --mount=type=tmpfs,target=/tmp \
+           apt update; apt install -y zfsutils-linux mbuffer lzop sanoid
+
+COPY --from=chisel /app/bin /usr/bin/chisel

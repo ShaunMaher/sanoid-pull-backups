@@ -79,6 +79,35 @@ docker-syncoid-image-push:
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
     IMAGE_NAME: 'syncoid-pull'
 
+docker-sanoid-client-image-get-version:
+  stage: docker-get-version
+  extends: .docker:get-version
+  image: bash:latest
+  variables:
+    DOCKERFILE_PATH: 'pull-client'
+    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
+    IMAGE_NAME: 'syncoid-pull-client'
+  script:
+    - |
+      IMAGE_NAME="${IMAGE_NAME:-$(basename "${CI_REGISTRY_IMAGE}")}"
+      echo "VERSION_TAGS[latest]=jammy" | tee -a ${IMAGE_NAME}-VERSION_TAGS
+
+docker-sanoid-client-image-build:
+  stage: docker-build
+  extends: .docker:build-image-from-dockerfile
+  variables:
+    DOCKERFILE_PATH: 'pull-client'
+    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
+    IMAGE_NAME: 'syncoid-pull-client'
+
+docker-sanoid-client-image-push:
+  stage: docker-push
+  extends: .docker:push-image-to-registry
+  variables:
+    DOCKERFILE_PATH: 'pull-client'
+    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
+    IMAGE_NAME: 'syncoid-pull-client'
+
 .run-backups:
   tags:
     TODO
