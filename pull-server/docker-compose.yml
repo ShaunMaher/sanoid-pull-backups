@@ -94,7 +94,7 @@ services:
       - certbot_www:/var/www/certbot
   chisel:
     image: 'cr.ghanima.net/applications/sanoid/chisel:latest'
-    command: [ "server", "-v", "--host", "0.0.0.0", "--port", "8081", "--keepalive", "45s", "--reverse" ]
+    command: [ "server", "-v", "--host", "0.0.0.0", "--port", "8081", "--keepalive", "45s", "--reverse", "--authfile", "/etc/chisel/users.json" ]
     configs:
       - source: chisel_users
         target: /etc/chisel/users.json
