@@ -8,6 +8,6 @@ RUN        --mount=type=cache,target=/var/cache/apt,sharing=locked,id=var-cache-
            --mount=type=cache,target=/var/lib/apt,sharing=locked,id=var-lib-apt-$TARGETPLATFORM \
            --mount=type=tmpfs,target=/var/cache/apk \
            --mount=type=tmpfs,target=/tmp \
-           apt update; apt install -y zfsutils-linux mbuffer lzop sanoid
+           apt update; apt install -y zfsutils-linux mbuffer lzop sanoid openssh-server
 
 COPY --from=chisel /app/bin /usr/bin/chisel
