@@ -12,6 +12,6 @@ RUN        --mount=type=cache,target=/var/cache/apt,sharing=locked,id=var-cache-
            apt update; apt install -y zfsutils-linux mbuffer lzop sanoid
 
 COPY --from=chisel /app/bin /usr/bin/chisel
-ADD ./entrypoint.sh /entrypoint.sh
+ADD ./pull-server/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT /entrypoint.sh
