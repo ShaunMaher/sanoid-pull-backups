@@ -56,8 +56,8 @@ docker-syncoid-image-get-version:
   image: bash:latest
   variables:
     DOCKERFILE_PATH: 'pull-server'
-    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull'
-    IMAGE_NAME: 'syncoid-pull'
+    DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-server'
+    IMAGE_NAME: 'syncoid-pull-server'
   script:
     - |
       IMAGE_NAME="${IMAGE_NAME:-$(basename "${CI_REGISTRY_IMAGE}")}"
