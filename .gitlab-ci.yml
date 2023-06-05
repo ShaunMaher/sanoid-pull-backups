@@ -50,7 +50,7 @@ docker-chisel-image-push:
     UPSTREAM_DOCKERFILE_PATH: '.'
     IMAGE_NAME: 'chisel'
 
-docker-syncoid-image-get-version:
+docker-syncoid-server-image-get-version:
   stage: docker-get-version
   extends: .docker:get-version
   image: bash:latest
@@ -58,12 +58,13 @@ docker-syncoid-image-get-version:
     DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-server'
     IMAGE_NAME: 'syncoid-pull-server'
+    #TODO: Tags/versions should track the upstream gitlab-runner image
   script:
     - |
       IMAGE_NAME="${IMAGE_NAME:-$(basename "${CI_REGISTRY_IMAGE}")}"
       echo "VERSION_TAGS[latest]=jammy" | tee -a ${IMAGE_NAME}-VERSION_TAGS
 
-docker-syncoid-image-build:
+docker-syncoid-server-image-build:
   stage: docker-build
   extends: .docker:build-image-from-dockerfile
   variables:
@@ -71,7 +72,7 @@ docker-syncoid-image-build:
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-server'
     IMAGE_NAME: 'syncoid-pull-server'
 
-docker-syncoid-image-push:
+docker-syncoid-server-image-push:
   stage: docker-push
   extends: .docker:push-image-to-registry
   variables:
