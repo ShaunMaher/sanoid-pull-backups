@@ -105,7 +105,7 @@ services:
     environment:
       TZ: Europe/Luxembourg
   gitlabrunner:
-    image: gitlab/gitlab-runner:v16.0.0
+    image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
     configs:
       - source: gitlabrunner_config
         target: /etc/gitlab-runner/config.toml
@@ -121,6 +121,9 @@ services:
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
+      - type: bind
+        source: /dev/zfs
+        target: /dev/zfs
 
 volumes:
   gitlab_runner_config:

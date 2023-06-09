@@ -3,7 +3,7 @@
 SSH_USERNAME="${SSH_USERNAME:-"syncoid"}"
 SSHD_PORT="${SSHD_PORT:-768}"
 CHISEL_REMOTE_URL="${CHISEL_REMOTE_URL:-"https://lu.ghanima.net/.well-known/chisel"}"
-CHISEL_REMOTES="${CHISEL_REMOTES:-"R:localhost:10022:localhost:768/tcp"}"
+CHISEL_REMOTES="${CHISEL_REMOTES:-"R:0.0.0.0:10022:localhost:768/tcp"}"
 CHISEL_AUTH="${CHISEL_AUTH:-"user:password"}"
 SSH_UID="${USER_UID:-"600"}"
 
