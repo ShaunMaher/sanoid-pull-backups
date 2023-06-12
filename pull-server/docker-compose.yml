@@ -112,6 +112,7 @@ services:
         uid: "0"
         gid: "0"
         mode: 0600
+    privileged: true
     restart: always
     hostname: runner
     environment:
