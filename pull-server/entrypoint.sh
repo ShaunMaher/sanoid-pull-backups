@@ -27,7 +27,7 @@ Host ${SSH_REMOTE_HOST}
   HostName      chisel
   User          ${SSH_USERNAME}
   Port          ${SSH_PORT}
-  IdentitiyFile ${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+  IdentityFile  ${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
 EOF
 
   echo "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
