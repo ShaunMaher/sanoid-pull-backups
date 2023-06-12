@@ -116,6 +116,9 @@ services:
     hostname: runner
     environment:
       TZ: Europe/Luxembourg
+      SSH_PORT: $SSH_PORT
+      SSH_PRIVKEY: $SSH_PRIVKEY
+      SSH_KNOWN_HOSTS: $SSH_KNOWN_HOSTS
     volumes:
       - 'gitlab_runner_config:/etc/gitlab-runner'
       - type: bind

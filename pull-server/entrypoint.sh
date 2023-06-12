@@ -31,9 +31,12 @@ Host ${SSH_REMOTE_HOST}
 EOF
 
   echo "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+  chmod 600 "${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}"
+  echo "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
+  chmod 600 >${HOME}/.ssh/known_hosts
 
   # TODO: The following should move to a gitlab runner job I think
-  syncoid
+  syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --sendoptions="w" "ph3.local:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
 
   sleep 3600
 done
