@@ -14,6 +14,28 @@ if [ "${HOME}" == "" ]; then
   export HOME=$(getent passwd "${USER}" | awk 'BEGIN{FS=":"}{print $6}')
 fi
 
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+GRAY='\033[1;90m'
+NC='\033[0m' # No Color
+
+function verbose() {
+  printf '%b\n' "${YELLOW}${1}${NC}"
+}
+
+function debug() {
+  printf '%b\n' "${GRAY}${1}${NC}"
+}
+
+function info() {
+  printf '%b\n' "${GREEN}${1}${NC}"
+}
+
+function error() {
+  printf '%b\n' "${RED}${1}${NC}"
+}
+
 #TODO: Start gitlab runner
 
 #TODO: Then what?
