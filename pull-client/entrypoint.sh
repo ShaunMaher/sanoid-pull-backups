@@ -8,7 +8,8 @@ CHISEL_AUTH="${CHISEL_AUTH:-"user:password"}"
 SSH_UID="${USER_UID:-"600"}"
 
 mkdir -p /var/lib/syncoid/
-if [ $(getent passwd "${SSH_USERNAME}" | echo $?) -ne 0 ]; then
+if [ $(getent passwd "${SSH_USERNAME}" || echo $?) -ne 0 ]; then
+  printf '%b\n' "Creating user '${SSH_USERNAME}'."
   useradd -m -d /var/lib/syncoid/${SSH_USERNAME} -u ${SSH_UID} ${SSH_USERNAME}
 fi
 mkdir -p /var/lib/syncoid/${SSH_USERNAME}/.ssh
@@ -17,6 +18,7 @@ if [ "${SSH_PUBKEY}" != "" ]; then
   echo "${SSH_PUBKEY}" > /var/lib/syncoid/${SSH_USERNAME}/.ssh/authorized_keys
   chmod 600 /var/lib/syncoid/${SSH_USERNAME}/.ssh/authorized_keys
 fi
+chown -R ${SSH_USERNAME}:${SSH_USERNAME} /var/lib/syncoid/${SSH_USERNAME}/.ssh/
 
 mkdir -p /run/sshd
 

@@ -31,10 +31,10 @@ Host ${SSH_REMOTE_HOST}
   IdentityFile  ${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
 EOF
 
-  printf '%b' "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+  printf '%b' $(printf '%b' "${SSH_PRIVKEY}") >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
   chmod 600 "${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}"
   printf '%b' "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
-  chmod 600 >${HOME}/.ssh/known_hosts
+  chmod 600 ${HOME}/.ssh/known_hosts
 
   # TODO: The following should move to a gitlab runner job I think
   syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --sendoptions="w" "ph3.local:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
