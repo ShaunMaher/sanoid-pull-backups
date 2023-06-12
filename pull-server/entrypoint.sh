@@ -4,6 +4,7 @@ SSH_REMOTE_HOST="ph3.local"
 SSH_USERNAME="${SSH_USERNAME:-"syncoid"}"
 SSH_PORT="${SSH_PORT:-10022}"
 SSH_PRIVKEY="${SSH_PRIVKEY}"
+SSH_KNOWN_HOSTS="${SSH_KNOWN_HOSTS}"
 
 # Don't assume that these normal environment variables are set.
 if [ "${USER}" == "" ]; then
@@ -30,9 +31,9 @@ Host ${SSH_REMOTE_HOST}
   IdentityFile  ${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
 EOF
 
-  echo "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+  printf '%b' "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
   chmod 600 "${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}"
-  echo "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
+  printf '%b' "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
   chmod 600 >${HOME}/.ssh/known_hosts
 
   # TODO: The following should move to a gitlab runner job I think
