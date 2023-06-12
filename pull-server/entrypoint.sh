@@ -37,7 +37,7 @@ EOF
   chmod 600 ${HOME}/.ssh/known_hosts
 
   # TODO: The following should move to a gitlab runner job I think
-  syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --sendoptions="w" "ph3.local:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
+  syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@ph3.local:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
 
   sleep 3600
 done

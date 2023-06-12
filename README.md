@@ -13,7 +13,7 @@ SSH access to the destination.
 The downside of the "Push" approach is that it necessarially gives the source
 server some permissions on the destination server.  These permissions could
 allow someone on a compromised source server to connect to the your backup
-repository and delete all your backups.
+repository and delete/corrupt all your backups.
 
 The "Pull" approach limits the impact of either the source or destination being
 compromised.
@@ -32,7 +32,75 @@ possible entrypoints for an attacker, and more oppitunities for backups to
 fail.
 
 This "Pull Server" implementation uses the "Chisel" tool to channel the backups
-over an outbound (from the source server) HTTPS websocker connection.
+over an outbound (from the source server) HTTPS websocker connection.  The Pull
+Server then connects to the source over the established tunnel (over SSH) to
+"zfs send" the backups to itself.
+
+## Installation
+### SSH Public/Private key pair
+```
+ssh-keygen -t ed25519 -C "syncoid@<source server name>" -N "" -f ~/.ssh/identities/syncoid@<source server name>
+```
+
+### Pull Server (where the backups should be stored)
+The pull server will need the following:
+* 1x (v)CPU
+* 1GiB of RAM
+* Enough block storage to hold your backup data
+* The ZFS Kernel module
+  * If you use Ubuntu 18.04 or newer, you will get this out of the box
+    * Unless you're using a VPS provider that uses something other than the
+      out-of-the-box Ubuntu Kernel.  If you VPS is a real VM, and not
+      something like an OpenVZ container, you should be fine.
+* 1x Public IP or ports 80 and 443 forwarded from a public IP
+* 1x Public DNS Name that points to the above Public IP
+  * If you are a CloudFlare user, you probably DO NOT want to use CloudFlare to
+    proxy traffic to this DNS name.  You will potentailly be sending GiB or TiB
+    of traffic to this IP and CloudFlare will likely want you to pay for that
+    much traffic.
+* Docker
+
+I use a reasonably stock Ubuntu 22.04 VM from BuyVM with a 256GiB storage
+"Slab".
+
+#### `users.json`
+`users.json` allows us to limit the access that the Pull Client has, via
+Chisel, on the Pull Server's network.
+
+The following allows the user `<source name>` access only to create a listening
+port on the Pull Server, listening on port 10022 on all interfaces.  "all
+interfaces" in this context is still just the interfaces/IPs within the Docker
+stack.  It is NOT allowing random connections from the internet to connect to
+port 10022 and sending them to the Pull Client.
+```json
+{
+  "<source name>:<a password>": [
+    "R:0.0.0.0:10022"
+  ]
+}
+```
+Each Pull Client will need a unique listening port on the Pull Server.
+
+#### TLS Certificate
+All traffic will transit over a TLS encrypted HTTPS tunnel.  The provided
+example `docker-compose.yml` will setup certbot to automatically create and 
+maintain a LetsEncrypt TLS certificate.
+
+
+
+### Pull Client (where the data is)
+* The data should already be on ZFS
+* If you want the data to be encrypted (private and hidden from the VPS
+  provider), the data should be on an encrypted ZFS dataset.
+* Docker
+* Access to the "syncoid-pull-client" docker image
+  * I might upload it to Docker Hub or equiv.
+  * Use the file "pull-client/Dockerfile.syncoid-pull-client" to build it
+    yourself
+
+```
+docker run -v /dev/zfs:/dev/zfs -v /tmp/syncoid-pull-client:/tmp/syncoid-pull-client --privileged -it --entrypoint /usr/bin/bash -e SSH_PUBKEY="<pub key here>" -e CHISEL_AUTH="ph3.local:<password here>" cr.ghanima.net/applications/sanoid/syncoid-pull-client
+```
 
 ## Backup Scripts - TODO: Rewrite this doco
 But, Sanoid and Syncoid provide all I need.  What are these scripts for?
