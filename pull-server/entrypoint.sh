@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/bash
 
 SSH_REMOTE_HOST="ph3.local"
 SSH_USERNAME="${SSH_USERNAME:-"syncoid"}"
@@ -31,6 +31,9 @@ Host ${SSH_REMOTE_HOST}
 EOF
 
   echo "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+
+  # TODO: The following should move to a gitlab runner job I think
+  syncoid
 
   sleep 3600
 done
