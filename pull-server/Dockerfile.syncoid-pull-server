@@ -7,7 +7,7 @@ ARG BASE_IMAGE=gitlab/gitlab-runner:v16.0.2
 FROM ${BASE_IMAGE}
 ARG TARGETPLATFORM
 
-ADD ./pull-server/entrypoint.sh /entrypoint.sh
+#ADD ./pull-server/entrypoint.sh /entrypoint.sh
 
 RUN        --mount=type=cache,target=/var/cache/apt,sharing=locked,id=var-cache-apt-$TARGETPLATFORM \
            --mount=type=cache,target=/var/lib/apt,sharing=locked,id=var-lib-apt-$TARGETPLATFORM \
@@ -15,4 +15,4 @@ RUN        --mount=type=cache,target=/var/cache/apt,sharing=locked,id=var-cache-
            --mount=type=tmpfs,target=/tmp \
            apt update; apt install -y zfsutils-linux mbuffer lzop sanoid; chmod +x /entrypoint.sh
 
-ENTRYPOINT /entrypoint.sh
+#ENTRYPOINT /entrypoint.sh
