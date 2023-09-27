@@ -16,11 +16,8 @@ include:
 run-backups-ph3-local:
   stage: run-backups
   image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
-  script:
-    - sh
-    - -c
-    - |
-      echo "Hello World"
+  script: |
+    echo "Hello World"
 
 docker-chisel-image-get-version:
   stage: docker-get-version
