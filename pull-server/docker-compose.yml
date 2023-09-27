@@ -106,6 +106,8 @@ services:
       TZ: Europe/Luxembourg
   gitlabrunner:
     image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
+    command:
+      - "gitlab-runner register -c /etc/gitlab-runner/config.toml -r ${RUNNER_REGISTRATION_TOKEN}"
     configs:
       - source: gitlabrunner_config
         target: /etc/gitlab-runner/config.toml
@@ -120,6 +122,7 @@ services:
       SSH_PORT: $SSH_PORT
       SSH_PRIVKEY: $SSH_PRIVKEY
       SSH_KNOWN_HOSTS: $SSH_KNOWN_HOSTS
+      RUNNER_REGISTRATION_TOKEN: $RUNNER_REGISTRATION_TOKEN
     volumes:
       - 'gitlab_runner_config:/etc/gitlab-runner'
       - type: bind
