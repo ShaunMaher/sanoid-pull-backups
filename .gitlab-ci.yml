@@ -15,8 +15,10 @@ include:
 
 run-backups-ph3-local:
   stage: run-backups
-  #image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
-  image: bash:latest
+  image:
+    name: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
+    entrypoint: [""]
+  #image: bash:latest
   script: |
     echo "Hello World"
 
