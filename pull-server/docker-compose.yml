@@ -109,13 +109,28 @@ services:
     entrypoint:
       - sh
       - -c
-      - "gitlab-runner register -c /etc/gitlab-runner/config.toml -r ${RUNNER_REGISTRATION_TOKEN}; sleep 3600; exec /usr/bin/dumb-init /entrypoint"
-    configs:
-      - source: gitlabrunner_config
-        target: /etc/gitlab-runner/config.toml
-        uid: "0"
-        gid: "0"
-        mode: 0600
+      - |
+        gitlab-runner \
+          register \
+          -c /etc/gitlab-runner/config.toml \
+          -u "https://git.ghanima.net" \
+          -r ${RUNNER_REGISTRATION_TOKEN} \
+          --name "lu.ghanima.local (docker)" \
+          --executor "docker" \
+          --docker-image bash:latest \
+          --docker-privileged \
+          --docker-volumes /certs/client \
+          --docker-volumes /cache \
+          --docker-pull-policy "if-not-present" \
+          --docker-allowed-pull-policies "always,if-not-present,never"
+        sleep 3600
+        exec /usr/bin/dumb-init /entrypoint"
+    #configs:
+    #  - source: gitlabrunner_config
+    #    target: /etc/gitlab-runner/config.toml
+    #    uid: "0"
+    #    gid: "0"
+    #    mode: 0600
     privileged: true
     restart: always
     hostname: runner
