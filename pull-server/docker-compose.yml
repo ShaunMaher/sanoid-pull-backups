@@ -112,6 +112,7 @@ services:
       - |
         gitlab-runner \
           register \
+          --non-interactive \
           -c /etc/gitlab-runner/config.toml \
           -u "https://git.ghanima.net" \
           -r ${RUNNER_REGISTRATION_TOKEN} \
