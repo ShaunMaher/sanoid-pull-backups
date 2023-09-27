@@ -124,7 +124,6 @@ services:
           --docker-volumes /cache \
           --docker-pull-policy "if-not-present" \
           --docker-allowed-pull-policies "always,if-not-present,never"
-        sleep 3600
         exec /usr/bin/dumb-init /entrypoint"
     #configs:
     #  - source: gitlabrunner_config
