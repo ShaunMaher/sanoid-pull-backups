@@ -107,8 +107,7 @@ services:
   gitlabrunner:
     image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
     command:
-      - bash
-      - -c
+      - /usr/bin/dumb-init
       - sleep 3600
       # gitlab-runner
       # register
