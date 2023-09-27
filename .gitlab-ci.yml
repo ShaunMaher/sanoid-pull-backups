@@ -3,6 +3,7 @@ variables:
   UPSTREAM_DOCKERFILE_PATH: '.'
 
 stages:
+  - run-backups
   - docker-get-version
   - docker-build
   - docker-push
@@ -11,6 +12,15 @@ include:
   - project: applications/tooling
     ref: main
     file: 'gitlab-ci-includes/build-oci-image.yml'
+
+run-backups-ph3-local:
+  stage: run-backups
+  image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
+  entrypoint:
+    - sh
+    - -c
+    - |
+      echo "Hello World"
 
 docker-chisel-image-get-version:
   stage: docker-get-version
