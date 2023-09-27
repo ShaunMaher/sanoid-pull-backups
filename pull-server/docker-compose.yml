@@ -124,7 +124,7 @@ services:
           --docker-volumes /cache \
           --docker-pull-policy "if-not-present" \
           --docker-allowed-pull-policies "always,if-not-present,never"
-        exec /usr/bin/dumb-init /entrypoint
+        exec /usr/bin/dumb-init /entrypoint run
     #configs:
     #  - source: gitlabrunner_config
     #    target: /etc/gitlab-runner/config.toml
