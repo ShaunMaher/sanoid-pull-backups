@@ -106,8 +106,9 @@ services:
       TZ: Europe/Luxembourg
   gitlabrunner:
     image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
-    command:
-      - /usr/bin/dumb-init
+    entrypoint:
+      - sh
+      - -c
       - sleep 3600
       # gitlab-runner
       # register
