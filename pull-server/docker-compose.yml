@@ -110,6 +110,7 @@ services:
       - sh
       - -c
       - |
+        rm /etc/gitlab-runner/config.toml
         gitlab-runner \
           register \
           --non-interactive \
@@ -123,7 +124,9 @@ services:
           --docker-volumes /certs/client \
           --docker-volumes /cache \
           --docker-pull-policy "if-not-present" \
-          --docker-allowed-pull-policies "always,if-not-present,never"
+          --docker-allowed-pull-policies "never" \
+          --docker-allowed-pull-policies "if-not-present" \
+          --docker-allowed-pull-policies "always" \
         exec /usr/bin/dumb-init /entrypoint run
     #configs:
     #  - source: gitlabrunner_config
