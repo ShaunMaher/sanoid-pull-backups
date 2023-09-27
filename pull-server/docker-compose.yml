@@ -107,12 +107,15 @@ services:
   gitlabrunner:
     image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
     command:
-      - gitlab-runner
-      - register
+      - bash
       - -c
-      - /etc/gitlab-runner/config.toml
-      - -r
-      - ${RUNNER_REGISTRATION_TOKEN}"
+      - sleep 3600
+      # gitlab-runner
+      # register
+      # -c
+      # /etc/gitlab-runner/config.toml
+      # -r
+      # ${RUNNER_REGISTRATION_TOKEN}"
     configs:
       - source: gitlabrunner_config
         target: /etc/gitlab-runner/config.toml
