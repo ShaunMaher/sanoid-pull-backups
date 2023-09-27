@@ -7,7 +7,6 @@ check_interval = 0
 [[runners]]
   name = "lu.ghanima.local (docker)"
   url = "https://git.ghanima.net/"
-  token = ""
   executor = "docker"
   [runners.custom_build_dir]
   [runners.cache]
