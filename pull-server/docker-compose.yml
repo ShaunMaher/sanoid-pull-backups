@@ -109,13 +109,7 @@ services:
     entrypoint:
       - sh
       - -c
-      - sleep 3600
-      # gitlab-runner
-      # register
-      # -c
-      # /etc/gitlab-runner/config.toml
-      # -r
-      # ${RUNNER_REGISTRATION_TOKEN}"
+      - "gitlab-runner register -c /etc/gitlab-runner/config.toml -r ${RUNNER_REGISTRATION_TOKEN}; exec /usr/bin/dumb-init /entrypoint"
     configs:
       - source: gitlabrunner_config
         target: /etc/gitlab-runner/config.toml
