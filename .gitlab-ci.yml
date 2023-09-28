@@ -45,8 +45,6 @@ run-backups-ph3-local:
     NC='\033[0m' # No Color
     export
 
-    ping -c 4 172.20.0.5
-
     function verbose() {
       printf '%b\n' "${YELLOW}${1}${NC}"
     }
@@ -80,7 +78,7 @@ run-backups-ph3-local:
     printf '%b' "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
     chmod 600 ${HOME}/.ssh/known_hosts
 
-    syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
+    syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@172.20.0.5:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
 
 docker-chisel-image-get-version:
   stage: docker-get-version
