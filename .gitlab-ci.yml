@@ -73,7 +73,8 @@ run-backups-ph3-local:
       IdentityFile  ${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
     EOF
 
-    printf '%b' $(printf '%b' "${SSH_PRIVKEY}") >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+    #printf '%b' $(printf '%b' "${SSH_PRIVKEY}") >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+    printf '%b' "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
     chmod 600 "${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}"
     printf '%b' "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
     chmod 600 ${HOME}/.ssh/known_hosts
