@@ -23,6 +23,8 @@ run-backups-ph3-local:
     SSH_PORT: 10022
     SSH_PRIVKEY: $PH3LOCAL_SSH_PRIVKEY
     SSH_KNOWN_HOSTS: $PH3LOCAL_SSH_KNOWN_HOSTS
+  rules:
+    - if: $RUNBACKUPS
   script: |
     SSH_REMOTE_HOST="${SSH_REMOTE_HOST:-"ph3.local"}"
     SSH_USERNAME="${SSH_USERNAME:-"syncoid"}"
@@ -90,6 +92,8 @@ docker-chisel-image-get-version:
     UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
     UPSTREAM_DOCKERFILE_PATH: '.'
     IMAGE_NAME: 'chisel'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
   script:
     - |
       OPWD=$(pwd)
@@ -111,6 +115,8 @@ docker-chisel-image-build:
     UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
     UPSTREAM_DOCKERFILE_PATH: '.'
     IMAGE_NAME: 'chisel'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
 
 docker-chisel-image-push:
   stage: docker-push
@@ -119,6 +125,8 @@ docker-chisel-image-push:
     UPSTREAM_GIT_URL: 'https://github.com/jpillora/chisel.git'
     UPSTREAM_DOCKERFILE_PATH: '.'
     IMAGE_NAME: 'chisel'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
 
 docker-syncoid-server-image-get-version:
   stage: docker-get-version
@@ -129,6 +137,8 @@ docker-syncoid-server-image-get-version:
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-server'
     IMAGE_NAME: 'syncoid-pull-server'
     #TODO: Tags/versions should track the upstream gitlab-runner image
+  rules:
+    - if: $DOCKERIMAGEUPDATE
   script:
     - |
       IMAGE_NAME="${IMAGE_NAME:-$(basename "${CI_REGISTRY_IMAGE}")}"
@@ -141,6 +151,8 @@ docker-syncoid-server-image-build:
     DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-server'
     IMAGE_NAME: 'syncoid-pull-server'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
 
 docker-syncoid-server-image-push:
   stage: docker-push
@@ -149,6 +161,8 @@ docker-syncoid-server-image-push:
     DOCKERFILE_PATH: 'pull-server'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-server'
     IMAGE_NAME: 'syncoid-pull-server'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
 
 docker-sanoid-client-image-get-version:
   stage: docker-get-version
@@ -158,6 +172,8 @@ docker-sanoid-client-image-get-version:
     DOCKERFILE_PATH: 'pull-client'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-client'
     IMAGE_NAME: 'syncoid-pull-client'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
   script:
     - |
       IMAGE_NAME="${IMAGE_NAME:-$(basename "${CI_REGISTRY_IMAGE}")}"
@@ -170,6 +186,8 @@ docker-sanoid-client-image-build:
     DOCKERFILE_PATH: 'pull-client'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-client'
     IMAGE_NAME: 'syncoid-pull-client'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
 
 docker-sanoid-client-image-push:
   stage: docker-push
@@ -178,6 +196,8 @@ docker-sanoid-client-image-push:
     DOCKERFILE_PATH: 'pull-client'
     DOCKERFILE_NAME: 'Dockerfile.syncoid-pull-client'
     IMAGE_NAME: 'syncoid-pull-client'
+  rules:
+    - if: $DOCKERIMAGEUPDATE
 
 .run-backups:
   tags:
