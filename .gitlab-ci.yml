@@ -44,7 +44,6 @@ run-backups-ph3-local:
     GRAY='\033[1;90m'
     NC='\033[0m' # No Color
     export
-    exit
 
     function verbose() {
       printf '%b\n' "${YELLOW}${1}${NC}"
@@ -62,16 +61,11 @@ run-backups-ph3-local:
       printf '%b\n' "${RED}${1}${NC}"
     }
 
-    #TODO: Start gitlab runner
-
-    #TODO: Then what?
-    while [ true ]; do
-
     # Create and populate a ~/.ssh/config file
     # TODO: This need to be expandable to multiple remote targets
-      mkdir -p "${HOME}/.ssh"
-      chmod 700 "${HOME}/.ssh"
-      cat >${HOME}/.ssh/config <<-EOF
+    mkdir -p "${HOME}/.ssh"
+    chmod 700 "${HOME}/.ssh"
+    cat >${HOME}/.ssh/config <<-EOF
     Host ${SSH_REMOTE_HOST}
       HostName      chisel
       User          ${SSH_USERNAME}
@@ -79,13 +73,12 @@ run-backups-ph3-local:
       IdentityFile  ${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
     EOF
 
-      printf '%b' $(printf '%b' "${SSH_PRIVKEY}") >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
-      chmod 600 "${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}"
-      printf '%b' "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
-      chmod 600 ${HOME}/.ssh/known_hosts
+    printf '%b' $(printf '%b' "${SSH_PRIVKEY}") >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
+    chmod 600 "${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}"
+    printf '%b' "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
+    chmod 600 ${HOME}/.ssh/known_hosts
 
-      # TODO: The following should move to a gitlab runner job I think
-      syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@ph3.local:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
+    syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
 
 docker-chisel-image-get-version:
   stage: docker-get-version
