@@ -45,6 +45,8 @@ run-backups-ph3-local:
     NC='\033[0m' # No Color
     export
 
+    ping -c 4 172.20.0.5
+
     function verbose() {
       printf '%b\n' "${YELLOW}${1}${NC}"
     }
