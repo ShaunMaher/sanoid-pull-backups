@@ -127,7 +127,7 @@ services:
           --docker-allowed-pull-policies "never" \
           --docker-allowed-pull-policies "if-not-present" \
           --docker-allowed-pull-policies "always" \
-          --docker-links sanoid-chisel-1:chisel
+          --docker-network-mode sanoid_default
         exec /usr/bin/dumb-init /entrypoint run
     #configs:
     #  - source: gitlabrunner_config
