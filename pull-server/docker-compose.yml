@@ -13,6 +13,8 @@ configs:
 services:
   nginx-ingress:
     image: 'nginx:latest'
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     restart: always
     # If the certificates for SSL don't exist (because certbot hasn't
     #  created them yet), Nginx will startup with just HTTP (which is
@@ -70,6 +72,8 @@ services:
       - certbot_www:/var/www/certbot
   certbot:
     image: certbot/certbot
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     entrypoint: |
       /bin/sh -c '
         trap exit TERM;
@@ -94,6 +98,8 @@ services:
       - certbot_www:/var/www/certbot
   chisel:
     image: 'cr.ghanima.net/applications/sanoid/chisel:latest'
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     command: [ "server", "-v", "--host", "0.0.0.0", "--port", "8081", "--keepalive", "45s", "--reverse", "--authfile", "/etc/chisel/users.json" ]
     configs:
       - source: chisel_users
@@ -106,6 +112,8 @@ services:
       TZ: Europe/Luxembourg
   gitlabrunner:
     image: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     entrypoint:
       - sh
       - -c
