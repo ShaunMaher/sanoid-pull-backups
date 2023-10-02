@@ -82,7 +82,8 @@ run-backups-ph3-local:
     chmod 600 ${HOME}/.ssh/known_hosts
     cat ${HOME}/.ssh/known_hosts
 
-    syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
+    #syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:SSD1/VMs/machines/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
+    syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:RaidZ7T/Backups/Syncoid/ph3.local/portainer1.ghanima.net" "SLAB/Backups/Syncoid/ph3.local/portainer1.ghanima.net"
 
 docker-chisel-image-get-version:
   stage: docker-get-version
