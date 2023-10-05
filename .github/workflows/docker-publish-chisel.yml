@@ -98,6 +98,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Modify the Dockerfile to reference the recently built chisel image
+      - name: Update Pull Client Dockerfile
+        env:
+          CHISEL_DIGEST: ${{ steps.build-and-push-chisel.outputs.digest }}
+        run: |
+          CHISEL_DIGEST=$(echo "${CHISEL_DIGEST}" | sed 's/^sha256:/^sha256-/g')
+          echo "ghcr.io/${{ github.repository_owner }}/chisel:${CHISEL_DIGEST}.sig"
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       # - name: Build and push Docker image
