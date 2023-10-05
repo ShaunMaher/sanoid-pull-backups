@@ -64,6 +64,13 @@ jobs:
       - name: Clone Chisel Repo
         run: mkdir chisel; git clone https://github.com/jpillora/chisel.git ./chisel
 
+      - name: Chisel Metadata
+        id: chiselmeta
+        shell: bash
+        run: |
+          cd chisel
+          echo "CHISEL_VERSION_TAG=ghcr.io/${{ github.repository_owner }}/$(git describe --abbrev=0 --tags)" >>"$GITHUB_OUTPUT"
+
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
@@ -83,7 +90,7 @@ jobs:
           context: ./chisel/
           #file: ./chisel/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.chiselmeta.outputs.CHISEL_VERSION_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
