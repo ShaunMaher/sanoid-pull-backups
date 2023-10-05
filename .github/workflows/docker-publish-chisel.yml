@@ -19,7 +19,7 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository_owner }}/syncoid-pull-server
+  #IMAGE_NAME: ${{ github.repository_owner }}/syncoid-pull-server
 
 
 jobs:
@@ -74,17 +74,35 @@ jobs:
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        id: build-and-push
+      - name: Build and push Chisel Docker image
+        env:
+          IMAGE_NAME: ${{ github.repository_owner }}/chisel
+        id: build-and-push-chisel
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: .
-          file: ./chisel/Dockerfile
+          context: ./chisel/
+          #file: ./chisel/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      # - name: Build and push Docker image
+      #   env:
+      #     IMAGE_NAME: ${{ github.repository_owner }}/syncoid-pull-client
+      #   id: build-and-push-pull-client
+      #   uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+      #   with:
+      #     context: .
+      #     file: ./pull-client/Dockerfile.syncoid-pull-client
+      #     push: ${{ github.event_name != 'pull_request' }}
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
