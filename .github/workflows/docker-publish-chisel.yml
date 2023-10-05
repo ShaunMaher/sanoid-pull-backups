@@ -69,7 +69,7 @@ jobs:
         shell: bash
         run: |
           cd chisel
-          echo "CHISEL_VERSION_TAG=ghcr.io/${{ github.repository_owner }}/$(git describe --abbrev=0 --tags)" >>"$GITHUB_OUTPUT"
+          echo "CHISEL_VERSION_TAG=ghcr.io/${{ github.repository_owner }}/chisel:$(git describe --abbrev=0 --tags)" | awk '{print tolower($0)}' >>"$GITHUB_OUTPUT"
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
