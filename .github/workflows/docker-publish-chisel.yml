@@ -62,7 +62,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Clone Chisel Repo
-      - run: mkdir chisel; git clone https://github.com/jpillora/chisel.git ./chisel
+        run: mkdir chisel; git clone https://github.com/jpillora/chisel.git ./chisel
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
