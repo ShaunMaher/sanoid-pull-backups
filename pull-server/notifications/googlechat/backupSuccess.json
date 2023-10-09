@@ -1,0 +1,27 @@
+{
+    "cardsV2": [
+      {
+        "cardId": "test1",
+        "card": {
+          "name": "cardname",
+          "header": {
+            "title": "Backup Success",
+            "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Breezeicons-status-16-dropboxstatus-idle.svg/1024px-Breezeicons-status-16-dropboxstatus-idle.svg.png"
+          },
+          "sections": [
+            {
+              "widgets": [
+                {
+                  "textParagraph": {
+                    "text": "paragraph"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+  
+  

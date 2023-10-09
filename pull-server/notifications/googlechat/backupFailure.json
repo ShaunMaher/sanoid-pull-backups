@@ -1,0 +1,27 @@
+{
+    "cardsV2": [
+      {
+        "cardId": "test1",
+        "card": {
+          "name": "cardname",
+          "header": {
+            "title": "Backup Failed",
+            "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Breezeicons-status-16-dropboxstatus-x.svg/1024px-Breezeicons-status-16-dropboxstatus-x.svg.png"
+          },
+          "sections": [
+            {
+              "widgets": [
+                {
+                  "textParagraph": {
+                    "text": "paragraph"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+  
+  
