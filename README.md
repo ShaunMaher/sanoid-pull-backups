@@ -32,9 +32,19 @@ possible entrypoints for an attacker, and more oppitunities for backups to
 fail.
 
 This "Pull Server" implementation uses the "Chisel" tool to channel the backups
-over an outbound (from the source server) HTTPS websocker connection.  The Pull
+over an outbound (from the source server) HTTPS websocket connection.  The Pull
 Server then connects to the source over the established tunnel (over SSH) to
 "zfs send" the backups to itself.
+
+TODO: Draw a diagram
+
+## Orchastation
+For the intital implementation, I will be using a self-hosted GitLab instance.
+GitLab CI/CD pipelines (which can be scheduled) will be used to trigger the
+pull process.
+
+Future implementations will allow for other triggers such as systemd timers, 
+cron, etc.
 
 ## Installation
 ### SSH Public/Private key pair
@@ -58,7 +68,8 @@ The pull server will need the following:
     proxy traffic to this DNS name.  You will potentailly be sending GiB or TiB
     of traffic to this IP and CloudFlare will likely want you to pay for that
     much traffic.
-* Docker
+* Docker - Mandatory for now, intended to become optional in the future
+* GitLab - Mandatory for now, intended to become optional in the future
 
 I use a reasonably stock Ubuntu 22.04 VM from BuyVM with a 256GiB storage
 "Slab".
@@ -87,12 +98,16 @@ example `docker-compose.yml` will setup certbot to automatically create and
 maintain a LetsEncrypt TLS certificate.
 
 
-
 ### Pull Client (where the data is)
 * The data should already be on ZFS
 * If you want the data to be encrypted (private and hidden from the VPS
   provider), the data should be on an encrypted ZFS dataset.
-* Docker
+* Something (sanoid or maybe the sanoid helper scripts detailed below) handling
+  snapshot creation.  The pull server is only going to sync snapshots between
+  source and destination.  It does NOT manage the creation of snapshots on the
+  source.
+  * TODO: Maybe it SHOULD (optionally) handle source snapshot creation
+* Docker - Mandatory for now, intended to become optional in the future
 * Access to the "syncoid-pull-client" docker image
   * I might upload it to Docker Hub or equiv.
   * Use the file "pull-client/Dockerfile.syncoid-pull-client" to build it
@@ -102,7 +117,19 @@ maintain a LetsEncrypt TLS certificate.
 docker run -v /dev/zfs:/dev/zfs -v /tmp/syncoid-pull-client:/tmp/syncoid-pull-client --privileged -it --entrypoint /usr/bin/bash -e SSH_PUBKEY="<pub key here>" -e CHISEL_AUTH="ph3.local:<password here>" cr.ghanima.net/applications/sanoid/syncoid-pull-client
 ```
 
-## Backup Scripts - TODO: Rewrite this doco
+TODO:
+* Create the syncoid user (it exists in the docker image already?)
+* Give the syncoid user "send" permission on the source datasets (by numeric
+  uid because it's in the docker image?)
+  * Can we limit send to "raw sends" so a compromised destination can't request
+    the unencrypted content?
+    https://github.com/openzfs/zfs/issues/13099
+
+## Backup helper scripts on the source
+
+> These scripts are to assist with snapshot creation on the source server and
+> are somewhat unrelated to the pull server backups described above.
+
 But, Sanoid and Syncoid provide all I need.  What are these scripts for?
 * Atomic snapshots of all datasets related to a Libvirt VM  
   My home server has a compination of mechanical disks and SSDs that make up
@@ -120,11 +147,12 @@ But, Sanoid and Syncoid provide all I need.  What are these scripts for?
     After the snapshots, and before control is handed back to Sanoid, the VM is
     unpaused and it's filesystems are thawed.
   * The VM is paused and therefore offline!?  For a second or two, yes.
-* Syncoid is triggered for each dataset a VM has a disk on.  Each dataset can
-  have one or more "destinations" defined as user parameters of the dataset.
+* To facilitate backups to local storage (i.e. seperate ZPOOL), Syncoid is
+  triggered for each dataset a VM has a disk on.  Each dataset can have one or
+  more "destinations" defined as user parameters of the dataset.
   * `systemd-run` is used to execute Syncoid in the background.
 
-## What's incomplete
+### What's incomplete
 * These features should be optional and controlled by settings somewhere (more
   userparameters probably)
   * Trim
@@ -133,13 +161,6 @@ But, Sanoid and Syncoid provide all I need.  What are these scripts for?
     Freeze/Thaw is probably sufficient to ensure consistant backups.
 * Cleanup of "atomic" snapshots
 * Cleanup of bookmarks created by Syncoid
-* Can we make the syncoid part "pull" backups instead of "push" (i.e. syncoid
-  runs on a destination machine and reaches out to pull the snapshots from the
-  source machine)
-  * This is way more secure because the source (which may be compromised) does
-    not need access to the destination datasets.  A compromised source can't
-    delete it's own backups.
-
 
 ## Doco that needs to be put somewhere better later
 ### SSH key authentication
