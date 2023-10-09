@@ -38,6 +38,8 @@ run-backups-ph3-local:
     SSH_KNOWN_HOSTS="${SSH_KNOWN_HOSTS}"
     SOURCE_DATASET="${SOURCE_DATASET}"
     DESTINATION_DATASET="${DESTINATION_DATASET}"
+    MINIMUM_COUNT_OF_BACKUPS_TO_KEEP="${MINIMUM_COUNT_OF_BACKUPS_TO_KEEP:-14}"
+    MINIMUM_AGE_OF_BACKUP_TO_DELETE="${MINIMUM_AGE_OF_BACKUP_TO_DELETE:-1209600}" # 14 days
     start_time=$(date +%s)
 
     # Don't assume that these normal environment variables are set.
@@ -92,6 +94,27 @@ run-backups-ph3-local:
 
     syncoid_log="/tmp/${SSH_REMOTE_HOST}.log"
     syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" "${DESTINATION_DATASET}" | tee "${syncoid_log}"
+
+    # Cleanup oldest snapshots on the destination
+    all_snapshots=$(zfs list -H -t snapshot -o name -d 1 "${DESTINATION_DATASET}")
+    all_snapshots_count=$(printf '%s' "${all_snapshots}" | wc -l)
+    if [ $all_snapshots_count -gt $MINIMUM_COUNT_OF_BACKUPS_TO_KEEP ]; then
+      echo "More than ${MINIMUM_COUNT_OF_BACKUPS_TO_KEEP} snapshots exist on the destination dataset.  Looking for candidates to prune."
+      while read object_name; do
+        object_date=$(date +%s -d "$(printf '%s' "${object_name}" | sed 's/_[^0-9].*$//g' | awk 'BEGIN{FS="_"}{print $(NF-1)" "$NF}')")
+        echo "Snapshot: ${object_name} - ${object_date}"
+      done < <(printf '%s' "${all_snapshots}")
+
+      #old_objects=$(printf '%s' "${all_remote_objects}" | jq "[ .[] | select((.UnixTime | tonumber) < $minimum_timestamp_of_backup) ]")
+      #old_objects_count=$(printf '%s' "${old_objects}" | jq "length")
+      #for (( i=0; i<$old_objects_count; i++ )) do
+      #  object_name=$(printf '%s' "${old_objects}" | jq -r ".[$i].Name")
+      #  object_path=$(printf '%s' "${old_objects}" | jq -r ".[$i].Path")
+      #  object_date=$(printf '%s' "${old_objects}" | jq -r ".[$i].UnixTime")
+      #  echo "Backup '${object_name}', created $(date -d "@${object_date}") is more than ${MINIMUM_AGE_OF_BACKUP_TO_DELETE} seconds old.  It can be pruned." | info
+      #  echo "rclone rm \"wasabi:${S3_BUCKET}/${object_path}\"" | debug
+      #done
+    fi
 
     send_size=$(cat "${syncoid_log}" | grep '^DEBUG: sendsize = ' | awk 'BEGIN{FS=" = ";total=0}{total=total+$2}END{print total}')
     result_json=$(echo "{}" | jq ".sendsize=${send_size}")
