@@ -46,16 +46,20 @@ syncoid_log="/tmp/${SSH_REMOTE_HOST}.log"
 syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" "${DESTINATION_DATASET}" | tee "${syncoid_log}"
 
 # Cleanup oldest snapshots on the destination
+#  For consistancy with the GitLab backup process, convert our list of snapshots
+#  to JSON
 all_snapshots=$(zfs list -H -t snapshot -o name -d 1 "${DESTINATION_DATASET}")
+while read object_name; do
+  object_date=$(date +%s -d "$(printf '%s' "${object_name}" | sed 's/_[^0-9].*$//g' | awk 'BEGIN{FS="_"}{print $(NF-1)" "$NF}')")
+  echo "Snapshot: ${object_name} - ${object_date}"
+  all_objects=$(printf '%s' "${all_objects} { \"Name\": \"${object_name}\", \"UnixTime\": ${object_date} }" | jq -s '.[0][(.[0] | length)] = .[1] | .[0]'
+done < <(printf '%s' "${all_snapshots}")
+pritnf '%s' "${all_objects}" | debug "all_objects: "
+
 all_snapshots_count=$(printf '%s' "${all_snapshots}" | wc -l)
 if [ $all_snapshots_count -gt $MINIMUM_COUNT_OF_BACKUPS_TO_KEEP ]; then
   echo "More than ${MINIMUM_COUNT_OF_BACKUPS_TO_KEEP} snapshots exist on the destination dataset.  Looking for candidates to prune."
-  while read object_name; do
-    object_date=$(date +%s -d "$(printf '%s' "${object_name}" | sed 's/_[^0-9].*$//g' | awk 'BEGIN{FS="_"}{print $(NF-1)" "$NF}')")
-    echo "Snapshot: ${object_name} - ${object_date}"
-  done < <(printf '%s' "${all_snapshots}")
-
-  #old_objects=$(printf '%s' "${all_remote_objects}" | jq "[ .[] | select((.UnixTime | tonumber) < $minimum_timestamp_of_backup) ]")
+  #old_objects=$(printf '%s' "${all_objects}" | jq "[ .[] | select((.UnixTime | tonumber) < $minimum_timestamp_of_backup) ]")
   #old_objects_count=$(printf '%s' "${old_objects}" | jq "length")
   #for (( i=0; i<$old_objects_count; i++ )) do
   #  object_name=$(printf '%s' "${old_objects}" | jq -r ".[$i].Name")
@@ -78,7 +82,7 @@ error_count=$(cat "${syncoid_log}" | grep -c "CRITICAL ERROR:")
 result_json=$(printf '%s' "${result_json}" | jq ".resumed=${error_count}")
 error_out_of_space=$(cat "${syncoid_log}" | grep -c "out of space")
 result_json=$(printf '%s' "${result_json}" | jq ".commonIssues={destinationOutOfSpace:${error_out_of_space}}")
-error_connection_refused=$((cat "${syncoid_log}" | grep -c 'ssh: connect to host chisel port.*Connection refused')
+error_connection_refused=$(cat "${syncoid_log}" | grep -c 'ssh: connect to host chisel port.*Connection refused')
 result_json=$(printf '%s' "${result_json}" | jq ".commonIssues={connectionToSourceRefused:${error_connection_refused}}")
 
 printf '%s' "${result_json}" | jq -C
