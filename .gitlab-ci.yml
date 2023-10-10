@@ -38,13 +38,13 @@ run-backups-ph3-local:
     - if: $RUNBACKUPS
   script:
     # Always install the latest tooling, not the latest submodule commit
-    - cd .submodules/
-    - git pull
-    - git submodule update --init --recursive
-    - git pull --recurse-submodules origin main
-    - git submodule sync --recursive
-    - git submodule update --remote --merge
-    - cd ..
+    # cd .submodules/
+    # git pull
+    # git submodule update --init --recursive
+    # git pull --recurse-submodules origin main
+    # git submodule sync --recursive
+    # git submodule update --remote --merge
+    # cd ..
     # Run the script
     - tooling/run_syncoid.sh
 
