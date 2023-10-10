@@ -1,0 +1,4 @@
+[submodule ".submodules/tooling"]
+	path = .submodules/tooling
+	url = https://git.ghanima.net/applications/tooling.git
+	branch = main
