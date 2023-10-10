@@ -45,6 +45,10 @@ run-backups-ph3-local:
     # git submodule sync --recursive
     # git submodule update --remote --merge
     # cd ..
+    # Install jq
+    - if [ "$(which jq)" == "" ]; then
+    -   apt -y update; apt install -y jq
+    - fi
     # Run the script
     - tooling/run_syncoid.sh
 
