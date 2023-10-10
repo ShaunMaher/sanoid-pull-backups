@@ -1,5 +1,5 @@
 # TODO: Make this dynamic
-ARG BASE_IMAGE=gitlab/gitlab-runner:v16.0.2
+ARG BASE_IMAGE=gitlab/gitlab-runner:v16.4.1
 
 FROM ${BASE_IMAGE}
 ARG TARGETPLATFORM
@@ -8,6 +8,6 @@ RUN        --mount=type=cache,target=/var/cache/apt,sharing=locked,id=var-cache-
            --mount=type=cache,target=/var/lib/apt,sharing=locked,id=var-lib-apt-$TARGETPLATFORM \
            --mount=type=tmpfs,target=/var/cache/apk \
            --mount=type=tmpfs,target=/tmp \
-           apt update; apt install -y zfsutils-linux mbuffer lzop sanoid
+           apt update; apt install -y zfsutils-linux mbuffer lzop sanoid jq
 
 
