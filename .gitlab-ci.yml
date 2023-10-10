@@ -15,6 +15,8 @@ include:
 
 run-backups-ph3-local:
   stage: run-backups
+  tags:
+    - lu-ghanima-local
   image:
     name: cr.ghanima.net/applications/sanoid/syncoid-pull-server:latest
     entrypoint: [""]
