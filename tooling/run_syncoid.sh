@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+
+# Load boilerplate functions
+function Source() { local ScriptName="$1" ; shift ; source "$ScriptName" ; }
+Source "$(dirname "$(readlink -f "${0}")")/bash-boilerplate/source" || exit 1
+
 SSH_REMOTE_HOST="${SSH_REMOTE_HOST:-"ph3.local"}"
 SSH_USERNAME="${SSH_USERNAME:-"syncoid"}"
 SSH_PORT="${SSH_PORT:-10022}"
@@ -16,29 +22,6 @@ fi
 if [ "${HOME}" == "" ]; then
   export HOME=$(getent passwd "${USER}" | awk 'BEGIN{FS=":"}{print $6}')
 fi
-
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-GRAY='\033[1;90m'
-NC='\033[0m' # No Color
-export
-
-function verbose() {
-  printf '%b\n' "${YELLOW}${1}${NC}"
-}
-
-function debug() {
-  printf '%b\n' "${GRAY}${1}${NC}"
-}
-
-function info() {
-  printf '%b\n' "${GREEN}${1}${NC}"
-}
-
-function error() {
-  printf '%b\n' "${RED}${1}${NC}"
-}
 
 # Create and populate a ~/.ssh/config file
 # TODO: This need to be expandable to multiple remote targets
