@@ -49,6 +49,7 @@ syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elev
 #  For consistancy with the GitLab backup process, convert our list of snapshots
 #  to JSON
 all_snapshots=$(zfs list -H -t snapshot -o name -d 1 "${DESTINATION_DATASET}")
+all_objects="[]"
 while read object_name; do
   object_date=$(date +%s -d "$(printf '%s' "${object_name}" | sed 's/_[^0-9].*$//g' | awk 'BEGIN{FS="_"}{print $(NF-1)" "$NF}')")
   echo "Snapshot: ${object_name} - ${object_date}"
