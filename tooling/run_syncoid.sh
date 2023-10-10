@@ -40,10 +40,10 @@ printf '%b' "${SSH_PRIVKEY}" >${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}
 chmod 600 "${HOME}/.ssh/${SSH_USERNAME}@${SSH_REMOTE_HOST}"
 printf '%b' "${SSH_KNOWN_HOSTS}" >${HOME}/.ssh/known_hosts
 chmod 600 ${HOME}/.ssh/known_hosts
-cat ${HOME}/.ssh/known_hosts
+cat ${HOME}/.ssh/known_hosts | debug "known_hosts: "
 
 syncoid_log="/tmp/${SSH_REMOTE_HOST}.log"
-syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" "${DESTINATION_DATASET}" | tee "${syncoid_log}"
+syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" "${DESTINATION_DATASET}" | tee "${syncoid_log}" | debug "syncoid: "
 
 # Cleanup oldest snapshots on the destination
 #  For consistancy with the GitLab backup process, convert our list of snapshots
@@ -52,7 +52,7 @@ all_snapshots=$(zfs list -H -t snapshot -o name -d 1 "${DESTINATION_DATASET}")
 while read object_name; do
   object_date=$(date +%s -d "$(printf '%s' "${object_name}" | sed 's/_[^0-9].*$//g' | awk 'BEGIN{FS="_"}{print $(NF-1)" "$NF}')")
   echo "Snapshot: ${object_name} - ${object_date}"
-  all_objects=$(printf '%s' "${all_objects} { \"Name\": \"${object_name}\", \"UnixTime\": ${object_date} }" | jq -s '.[0][(.[0] | length)] = .[1] | .[0]'
+  all_objects=$(printf '%s' "${all_objects} { \"Name\": \"${object_name}\", \"UnixTime\": ${object_date} }" | jq -s '.[0][(.[0] | length)] = .[1] | .[0]')
 done < <(printf '%s' "${all_snapshots}")
 pritnf '%s' "${all_objects}" | debug "all_objects: "
 
