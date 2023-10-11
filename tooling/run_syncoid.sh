@@ -43,7 +43,8 @@ chmod 600 ${HOME}/.ssh/known_hosts
 cat ${HOME}/.ssh/known_hosts | debug "known_hosts: "
 
 syncoid_log="/tmp/${SSH_REMOTE_HOST}.log"
-syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" "${DESTINATION_DATASET}" | tee "${syncoid_log}" | debug "syncoid: "
+syncoid_error_log="/tmp/${SSH_REMOTE_HOST}.err"
+syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" "${DESTINATION_DATASET}" 2> >(tee "${syncoid_error_log}" | error "syncoid: ")| tee "${syncoid_log}" | debug "syncoid: "
 
 # Cleanup oldest snapshots on the destination
 #  For consistancy with the GitLab backup process, convert our list of snapshots
@@ -52,7 +53,6 @@ all_snapshots=$(zfs list -H -t snapshot -o name -d 1 "${DESTINATION_DATASET}")
 all_objects="[]"
 while read object_name; do
   object_date=$(date +%s -d "$(printf '%s' "${object_name}" | sed 's/_[^0-9].*$//g' | awk 'BEGIN{FS="_"}{print $(NF-1)" "$NF}')")
-  echo "Snapshot: ${object_name} - ${object_date}"
   all_objects=$(printf '%s' "${all_objects} { \"Name\": \"${object_name}\", \"UnixTime\": ${object_date} }" | jq -s '.[0][(.[0] | length)] = .[1] | .[0]')
 done < <(printf '%s' "${all_snapshots}")
 printf '%s' "${all_objects}" | debug "all_objects: "
@@ -77,9 +77,9 @@ resumed=$(cat "${syncoid_log}" | grep -c "^Resuming interrupted zfs send/receive
 result_json=$(printf '%s' "${result_json}" | jq ".resumed=${resumed}")
 duration=$(( $(date +%s) - $start_time ))
 result_json=$(printf '%s' "${result_json}" | jq ".duration=${duration}")
-error_msg=$(cat "${syncoid_log}" | grep -B 1 "CRITICAL ERROR:")
+error_msg=$(cat "${syncoid_error_log}" | grep -B 1 "CRITICAL ERROR:")
 result_json=$(printf '%s' "${result_json}" | jq ".error_msg=\"${error_msg}\"")
-error_count=$(cat "${syncoid_log}" | grep -c "CRITICAL ERROR:")
+error_count=$(cat "${syncoid_error_log}" | grep -c "CRITICAL ERROR:")
 result_json=$(printf '%s' "${result_json}" | jq ".error_count=${error_count}")
 error_out_of_space=$(cat "${syncoid_log}" | grep -c "out of space")
 result_json=$(printf '%s' "${result_json}" | jq ".commonIssues={destinationOutOfSpace:${error_out_of_space}}")
