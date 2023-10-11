@@ -84,7 +84,7 @@ result_json=$(printf '%s' "${result_json}" | jq ".error_count=${error_count}")
 error_out_of_space=$(cat "${syncoid_log}" | grep -c "out of space")
 result_json=$(printf '%s' "${result_json}" | jq ".commonIssues={destinationOutOfSpace:${error_out_of_space}}")
 error_connection_refused=$(cat "${syncoid_log}" | grep -c 'ssh: connect to host chisel port.*Connection refused')
-result_json=$(printf '%s' "${result_json}" | jq ".commonIssues={connectionToSourceRefused:${error_connection_refused}}")
+result_json=$(printf '%s' "${result_json}" | jq ".commonIssues.connectionToSourceRefused=${error_connection_refused}}")
 
 printf '%s' "${result_json}" | jq -C
 printf '%s' "${result_json}" > backup_result.json
