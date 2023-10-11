@@ -44,7 +44,17 @@ cat ${HOME}/.ssh/known_hosts | debug "known_hosts: "
 
 syncoid_log="/tmp/${SSH_REMOTE_HOST}.log"
 syncoid_error_log="/tmp/${SSH_REMOTE_HOST}.err"
-syncoid --debug --dumpsnaps --create-bookmark --no-sync-snap --no-privilege-elevation --sendoptions="w" "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" "${DESTINATION_DATASET}" 2> >(tee "${syncoid_error_log}" | error "syncoid: ")| tee "${syncoid_log}" | debug "syncoid: "
+syncoid \
+  --debug \
+  --dumpsnaps \
+  --create-bookmark \
+  --no-sync-snap \
+  --no-privilege-elevation \
+  --sendoptions="w" \
+  "${SSH_USERNAME}@${SSH_REMOTE_HOST}:${SOURCE_DATASET}" \
+  "${DESTINATION_DATASET}" \
+    2> >(tee "${syncoid_error_log}" | error "syncoid: ") | \
+    tee "${syncoid_log}" | debug "syncoid: "
 
 # Cleanup oldest snapshots on the destination
 #  For consistancy with the GitLab backup process, convert our list of snapshots
@@ -77,7 +87,7 @@ resumed=$(cat "${syncoid_log}" | grep -c "^Resuming interrupted zfs send/receive
 result_json=$(printf '%s' "${result_json}" | jq ".resumed=${resumed}")
 duration=$(( $(date +%s) - $start_time ))
 result_json=$(printf '%s' "${result_json}" | jq ".duration=${duration}")
-error_msg=$(cat "${syncoid_error_log}" | grep -B 1 "CRITICAL ERROR:")
+error_msg=$(cat "${syncoid_error_log}" | grep -v '^Warning:' | grep -B 1 "CRITICAL ERROR:")
 result_json=$(printf '%s' "${result_json}" | jq ".error_msg=\"${error_msg}\"")
 error_count=$(cat "${syncoid_error_log}" | grep -c "CRITICAL ERROR:")
 result_json=$(printf '%s' "${result_json}" | jq ".error_count=${error_count}")
