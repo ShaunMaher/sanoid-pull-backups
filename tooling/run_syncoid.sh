@@ -55,7 +55,7 @@ while read object_name; do
   echo "Snapshot: ${object_name} - ${object_date}"
   all_objects=$(printf '%s' "${all_objects} { \"Name\": \"${object_name}\", \"UnixTime\": ${object_date} }" | jq -s '.[0][(.[0] | length)] = .[1] | .[0]')
 done < <(printf '%s' "${all_snapshots}")
-pritnf '%s' "${all_objects}" | debug "all_objects: "
+printf '%s' "${all_objects}" | debug "all_objects: "
 
 all_snapshots_count=$(printf '%s' "${all_snapshots}" | wc -l)
 if [ $all_snapshots_count -gt $MINIMUM_COUNT_OF_BACKUPS_TO_KEEP ]; then
